@@ -60,7 +60,7 @@ export type PaletteInput =
 export interface PaletteOptions {
   brandTint?: boolean; // default true
   neonChromaRolloff?: boolean; // default true
-  cvdVariants?: CvdType[]; // accepted, not implemented yet in v1
+  cvdVariants?: CvdType[]; // protanopia, deuteranopia, tritanopia — simulated palettes in config.variants
 }
 
 export interface SemanticTokens {

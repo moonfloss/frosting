@@ -29,11 +29,11 @@ export function rgbToHex(rgb: RGB): HexColor {
   return `#${r}${g}${b}` as HexColor;
 }
 
-// sRGB <-> linear
-function srgbToLinear(x: number): number {
+// sRGB <-> linear (0–1); exported for CVD simulation
+export function srgbToLinear(x: number): number {
   return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
 }
-function linearToSrgb(x: number): number {
+export function linearToSrgb(x: number): number {
   return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
 }
 

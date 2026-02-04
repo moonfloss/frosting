@@ -37,11 +37,28 @@ describe("generatePalette", () => {
     expect(out.inputs.brand.dark.length).toBe(3);
   });
 
-  it("adds warning when cvdVariants requested (not implemented)", () => {
+  it("emits CVD variants when cvdVariants requested", () => {
     const out = generatePalette(
       { brand: ["#7C3AED"] },
       { cvdVariants: ["deuteranopia"] },
     );
-    expect(out.modes.light.meta.warnings.some((w) => /cvdVariants requested/.test(w))).toBe(true);
+    expect(out.variants).toBeDefined();
+    expect(out.variants!.deuteranopia).toBeDefined();
+    expect(out.variants!.deuteranopia.kind).toBe("cvd");
+    expect(out.variants!.deuteranopia.type).toBe("deuteranopia");
+    expect(out.variants!.deuteranopia.modes.light).toBeDefined();
+    expect(out.variants!.deuteranopia.modes.dark).toBeDefined();
+    expect(out.variants!.deuteranopia.modes.light.semantic.primary).toBeDefined();
+    expect(out.variants!.deuteranopia.modes.light.ramps.brand1[500]).toBeDefined();
+  });
+
+  it("emits multiple CVD variant types when requested", () => {
+    const out = generatePalette(
+      { brand: ["#7C3AED"] },
+      { cvdVariants: ["protanopia", "deuteranopia", "tritanopia"] },
+    );
+    expect(out.variants!.protanopia.type).toBe("protanopia");
+    expect(out.variants!.deuteranopia.type).toBe("deuteranopia");
+    expect(out.variants!.tritanopia.type).toBe("tritanopia");
   });
 });

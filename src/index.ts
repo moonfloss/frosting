@@ -4,10 +4,12 @@ import {
   PaletteOptions,
   ModePalette,
   Ramp,
+  PaletteVariant,
 } from "./types";
 import { resolveInputs } from "./resolve";
 import { generateNeutralRamp, generateRampFromAnchor } from "./ramp";
 import { generateSemanticTokens } from "./semantic";
+import { applyCvdToModePalette } from "./cvd";
 
 export function generatePalette(
   input: PaletteInput,
@@ -74,13 +76,6 @@ export function generatePalette(
       providedForeground: resolved.foreground[mode],
     });
 
-    // CVD variants: accepted but skipped (v1)
-    if (options?.cvdVariants?.length) {
-      warnings.push(
-        `cvdVariants requested (${options.cvdVariants.join(", ")}), but not implemented in v1 — skipping.`,
-      );
-    }
-
     return {
       ramps: {
         ...brandRamps,
@@ -95,6 +90,25 @@ export function generatePalette(
   const light = buildMode("light");
   const dark = buildMode("dark");
 
+  const variants: Record<string, PaletteVariant> | undefined =
+    options?.cvdVariants?.length
+      ? {}
+      : undefined;
+
+  if (variants) {
+    for (const type of options!.cvdVariants!) {
+      variants[type] = {
+        kind: "cvd",
+        type,
+        modes: {
+          light: applyCvdToModePalette(light, type),
+          dark: applyCvdToModePalette(dark, type),
+        },
+        meta: { notes: [] },
+      };
+    }
+  }
+
   const out: PaletteConfig = {
     version: "1.0.0",
     generatedAt: new Date().toISOString(),
@@ -106,9 +120,9 @@ export function generatePalette(
       ...(resolved.schemeUsed ? { schemeUsed: resolved.schemeUsed } : {}),
     },
     modes: { light, dark },
+    ...(variants ? { variants } : {}),
   };
 
-  // NOTE: not emitting `variants` yet; we warned above if requested.
   return out;
 }
 

@@ -32,9 +32,7 @@ npm install frosting
 
 ## CLI
 
-`frosting` includes a small CLI for building and previewing palettes without writing code either by providing a JSON config or using the interactive prompt/answer method. The output prints to the console with color swatches with the option to write to an output file.
-
-Run it with:
+`frosting` includes a small CLI: use **wizard** for an interactive setup, or **config:filepath** to read a config from a file. Output goes to stdout (use `> file` to save).
 
 ```bash
 npx frosting
@@ -42,68 +40,43 @@ npx frosting
 frosting
 ```
 
-```
-frosting <command> [options]
-```
-
----
-
-### Commands
-
-| Command | What it does                                                  |
-| ------- | ------------------------------------------------------------- |
-| `init`  | Interactive wizard to create a palette config and preview it. |
-| `gen`   | Generate a palette from a JSON config.                        |
-| `help`  | Show usage.                                                   |
-
----
-
-## `frosting init`
-
-Guided setup for a palette.  
-You answer a few questions (brand vs scheme, light/dark, options), and frosting:
-
-- builds a valid config
-- shows you the JSON
-- previews the palette with real terminal colors
-
-You can optionally save the config for later.
+Run `frosting` or `frosting help` to see usage.
 
 **Options**
 
-- `--out <file.json>` — Save the **input config** for reuse.
-- `--mode light|dark|both` — Configure only certain modes (default: `both`).
+| Option | What it does |
+| ------ | ------------ |
+| `wizard` | Use prompt/answer wizard (if not present, read config from `config:filepath`). |
+| `exclude:list` | Comma-separated variants to exclude: `light`, `dark`, `cvd`, or `cvd:name1,name2`. |
+| `only:list` | Comma-separated variants to include (opposite of exclude). |
+| `config:filepath` | Read config from filepath (when not using wizard). |
+| `filepath1 > filepath2` | Write config to filepath1, write result to filepath2 (if absent, print only). |
 
-**Examples**
+---
+
+### Wizard mode
+
+`frosting wizard` — Interactive guided setup. You answer questions (brand vs scheme, light/dark, options); frosting builds a config, shows the JSON, and previews the palette.
+
+Use **filepath > filepath** to write both: first path = where to write the config, redirect = where to write the palette.
 
 ```bash
-frosting init
-frosting init --out palette-input.json
-frosting init --mode light --out light.json
+frosting wizard
+frosting wizard config.json > palette.json
+frosting wizard exclude:dark only:light
 ```
 
 ---
 
-## `frosting gen`
+### Config from file
 
-Generate a full palette from a saved config.
-
-Prints JSON to stdout so you can pipe it into other tools.
-
-**Options**
-
-- `--input <file.json>` — (required) Input config file.
-- `--out <file.json>` — Also write palette JSON to a file.
-- `--pretty` — Pretty-print JSON.
-- `--swatches` — Show a color preview in your terminal.
-- `--only light|dark` — Limit swatch preview to one mode.
-
-**Examples**
+`frosting config:filepath` — Read config from the given file, generate palette to stdout. Use `> palette.json` to save the result.
 
 ```bash
-frosting gen --input palette-input.json
-frosting gen --input palette-input.json --swatches
-frosting gen --input palette-input.json --out palette.json --pretty
+frosting config:input.json
+frosting config:input.json > palette.json
+frosting config:input.json exclude:cvd
+frosting config:input.json exclude:cvd:protanopia,deuteranopia
 ```
 
 ---
@@ -201,8 +174,9 @@ Supported:
 - protanopia
 - deuteranopia
 - tritanopia
+- all
 
-These variants try to keep key colors distinguishable under simulation. Helpful, not perfect.
+Pass one or more types in `cvdVariants`; the palette is simulated (Brettel-style) for each type and emitted as `config.variants[type]` (e.g. `config.variants.deuteranopia`), with the same structure as `modes` (light/dark ramps and semantic tokens).
 
 ---
 
