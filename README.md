@@ -30,6 +30,84 @@ npm install frosting
 
 ---
 
+## CLI
+
+`frosting` includes a small CLI for building and previewing palettes without writing code either by providing a JSON config or using the interactive prompt/answer method. The output prints to the console with color swatches with the option to write to an output file.
+
+Run it with:
+
+```bash
+npx frosting
+# or
+frosting
+```
+
+```
+frosting <command> [options]
+```
+
+---
+
+### Commands
+
+| Command | What it does                                                  |
+| ------- | ------------------------------------------------------------- |
+| `init`  | Interactive wizard to create a palette config and preview it. |
+| `gen`   | Generate a palette from a JSON config.                        |
+| `help`  | Show usage.                                                   |
+
+---
+
+## `frosting init`
+
+Guided setup for a palette.  
+You answer a few questions (brand vs scheme, light/dark, options), and frosting:
+
+- builds a valid config
+- shows you the JSON
+- previews the palette with real terminal colors
+
+You can optionally save the config for later.
+
+**Options**
+
+- `--out <file.json>` — Save the **input config** for reuse.
+- `--mode light|dark|both` — Configure only certain modes (default: `both`).
+
+**Examples**
+
+```bash
+frosting init
+frosting init --out palette-input.json
+frosting init --mode light --out light.json
+```
+
+---
+
+## `frosting gen`
+
+Generate a full palette from a saved config.
+
+Prints JSON to stdout so you can pipe it into other tools.
+
+**Options**
+
+- `--input <file.json>` — (required) Input config file.
+- `--out <file.json>` — Also write palette JSON to a file.
+- `--pretty` — Pretty-print JSON.
+- `--swatches` — Show a color preview in your terminal.
+- `--only light|dark` — Limit swatch preview to one mode.
+
+**Examples**
+
+```bash
+frosting gen --input palette-input.json
+frosting gen --input palette-input.json --swatches
+frosting gen --input palette-input.json --out palette.json --pretty
+```
+
+---
+
 ## Quick start
 
 ```ts
