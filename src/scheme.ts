@@ -69,6 +69,12 @@ export function deriveBrandFromScheme(
     anchors.push(oklchToHex(out));
   }
 
-  // Cast to BrandArray by construction
-  return anchors as BrandArray;
+  return toBrandArray(anchors);
+}
+
+function toBrandArray(colors: HexColor[]): BrandArray {
+  if (colors.length < 1 || colors.length > 4) {
+    throw new Error(`Expected 1–4 colors, got ${colors.length}`);
+  }
+  return colors as BrandArray;
 }

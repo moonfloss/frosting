@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveInputs } from "../src/resolve.js";
+import type { BrandArray, PaletteInput } from "../src/types.js";
 
 const defaultOptions = {
   brandTint: true as const,
@@ -36,10 +37,10 @@ describe("resolveInputs", () => {
         resolveInputs(
           {
             brand: {
-              light: undefined as any,
-              dark: undefined as any,
+              light: undefined as unknown as BrandArray,
+              dark: undefined as unknown as BrandArray,
             },
-          } as any,
+          } as PaletteInput,
           defaultOptions,
         ),
       ).toThrow(/brand is required/);
@@ -56,7 +57,10 @@ describe("resolveInputs", () => {
 
     it("throws for wrong brand array length", () => {
       expect(() =>
-        resolveInputs({ brand: [] as any }, defaultOptions),
+        resolveInputs(
+          { brand: [] as unknown as BrandArray },
+          defaultOptions,
+        ),
       ).toThrow(/expected 1–4 brand/);
     });
 
@@ -108,7 +112,7 @@ describe("resolveInputs", () => {
               base: { light: undefined, dark: undefined },
               kind: "triad",
             },
-          } as any,
+          } as PaletteInput,
           defaultOptions,
         ),
       ).toThrow(/scheme.base must resolve to both light and dark/);

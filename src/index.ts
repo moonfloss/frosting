@@ -32,7 +32,12 @@ export function generatePalette(
       brand2?: Ramp;
       brand3?: Ramp;
       brand4?: Ramp;
-    } = {} as any;
+    } = {} as {
+      brand1: Ramp;
+      brand2?: Ramp;
+      brand3?: Ramp;
+      brand4?: Ramp;
+    };
 
     const r1 = generateRampFromAnchor(anchors[0], mode, {
       neonChromaRolloff: optionsUsed.neonChromaRolloff,

@@ -8,6 +8,7 @@ import { stdin as input, stderr as stderrOut } from "node:process";
 
 import { generatePalette } from "./index";
 import { STEPS } from "./ramp";
+import { assertBrandArray } from "./validate";
 import type {
   PaletteInput,
   PaletteOptions,
@@ -49,6 +50,8 @@ function schemeAnchorCount(kind: SchemeKind): number {
 }
 
 type Mode = "light" | "dark";
+
+const MODES: readonly Mode[] = ["light", "dark"];
 
 function die(msg: string): never {
   console.error(`frosting: ${msg}`);
@@ -126,15 +129,17 @@ function parseHexList(raw: string): HexColor[] {
   if (parts.length < 1 || parts.length > 4) {
     die(`Expected 1–4 colors, got ${parts.length}`);
   }
+  const result: HexColor[] = [];
   for (const p of parts) {
     if (!isHex6(p)) die(`Invalid hex: "${p}" (expected #RRGGBB)`);
+    result.push(p);
   }
-  return parts as HexColor[];
+  return result;
 }
 
 function toBrandArray(list: HexColor[]): BrandArray {
-  if (list.length < 1 || list.length > 4) die(`brand must have 1–4 colors`);
-  return list as BrandArray;
+  assertBrandArray(list, "brand");
+  return list;
 }
 
 function normalizeYesNo(s: string, defaultYes: boolean): boolean {
@@ -198,8 +203,11 @@ function printSemantic(
   }
 }
 
+/** Minimal shape needed for preview (full config or just modes). */
+type PalettePreviewSource = Pick<PaletteConfig, "modes">;
+
 function printPalettePreview(
-  palette: PaletteConfig,
+  palette: PalettePreviewSource,
   mode: Mode,
   toStderr = false,
 ) {
@@ -221,9 +229,9 @@ function printPalettePreview(
 function printVariantPreviews(variant: PaletteVariant, toStderr = false) {
   const out = toStderr ? console.error : console.log;
   out(`\n=== CVD variant: ${variant.type} ===`);
-  const fakeConfig = { modes: variant.modes } as PaletteConfig;
-  printPalettePreview(fakeConfig, "light", toStderr);
-  printPalettePreview(fakeConfig, "dark", toStderr);
+  const preview: PalettePreviewSource = { modes: variant.modes };
+  printPalettePreview(preview, "light", toStderr);
+  printPalettePreview(preview, "dark", toStderr);
 }
 
 function writeFile(p: string, data: string) {
@@ -418,6 +426,21 @@ function mergeFilters(
   };
 }
 
+function fromModeEntries(
+  entries: [string, ModePalette][],
+): { light: ModePalette; dark: ModePalette } {
+  return Object.fromEntries(entries) as {
+    light: ModePalette;
+    dark: ModePalette;
+  };
+}
+
+function fromVariantEntries(
+  entries: [string, PaletteVariant][],
+): Record<string, PaletteVariant> {
+  return Object.fromEntries(entries) as Record<string, PaletteVariant>;
+}
+
 function applyVariantFilter(
   palette: PaletteConfig,
   filter: VariantFilter,
@@ -429,29 +452,29 @@ function applyVariantFilter(
 
   if (filter.onlyModes?.length) {
     const keep = new Set(filter.onlyModes);
-    modes = Object.fromEntries(
+    modes = fromModeEntries(
       Object.entries(modes).filter(([k]) => keep.has(k as Mode)),
-    ) as { light: ModePalette; dark: ModePalette };
+    );
   } else if (filter.excludeModes?.length) {
     const remove = new Set(filter.excludeModes);
-    modes = Object.fromEntries(
+    modes = fromModeEntries(
       Object.entries(modes).filter(([k]) => !remove.has(k as Mode)),
-    ) as { light: ModePalette; dark: ModePalette };
+    );
   }
 
   if (filter.onlyCvdNames?.length && variants) {
     const keep = new Set(filter.onlyCvdNames);
-    variants = Object.fromEntries(
+    variants = fromVariantEntries(
       Object.entries(variants).filter(([k]) => keep.has(k as CvdType)),
-    ) as Record<string, PaletteVariant>;
+    );
     if (Object.keys(variants).length === 0) variants = undefined;
   } else if (filter.excludeCvdAll || filter.excludeCvdNames?.length) {
     if (filter.excludeCvdAll) variants = undefined;
     else if (filter.excludeCvdNames?.length && variants) {
       const remove = new Set(filter.excludeCvdNames);
-      variants = Object.fromEntries(
+      variants = fromVariantEntries(
         Object.entries(variants).filter(([k]) => !remove.has(k as CvdType)),
-      ) as Record<string, PaletteVariant>;
+      );
       if (Object.keys(variants).length === 0) variants = undefined;
     }
   }
@@ -621,7 +644,7 @@ async function runWizard(configWritePath?: string) {
   let palette = generatePalette(paletteInput, options);
   palette = applyVariantFilter(palette, filter);
 
-  for (const mode of ["light", "dark"] as Mode[]) {
+  for (const mode of MODES) {
     if (palette.modes[mode]) printPalettePreview(palette, mode, true);
   }
   if (palette.variants && Object.keys(palette.variants).length > 0) {
@@ -642,6 +665,33 @@ async function runWizard(configWritePath?: string) {
   }
 }
 
+function isPaletteInput(parsed: unknown): parsed is PaletteInput {
+  if (parsed == null || typeof parsed !== "object") return false;
+  const o = parsed as Record<string, unknown>;
+  const hasBrand = "brand" in o;
+  const hasScheme = "scheme" in o;
+  if (hasBrand && hasScheme) return false;
+  if (!hasBrand && !hasScheme) return false;
+  if (hasScheme) {
+    const s = o.scheme;
+    return (
+      s != null &&
+      typeof s === "object" &&
+      "kind" in s &&
+      "base" in (s as object)
+    );
+  }
+  return true;
+}
+
+function parsePaletteInput(raw: string): PaletteInput {
+  const parsed: unknown = JSON.parse(raw);
+  if (!isPaletteInput(parsed)) {
+    die("Config must be a JSON object with either 'brand' or 'scheme'.");
+  }
+  return parsed;
+}
+
 async function runFromFile(configPath: string, configWritePath?: string) {
   const filter = getFilter();
   const options = getOptionsFromArgv();
@@ -650,7 +700,7 @@ async function runFromFile(configPath: string, configWritePath?: string) {
     path.resolve(process.cwd(), configPath),
     "utf8",
   );
-  const paletteInput = JSON.parse(raw) as PaletteInput;
+  const paletteInput = parsePaletteInput(raw);
 
   if (configWritePath) {
     writeFile(configWritePath, JSON.stringify(paletteInput, null, 2) + "\n");
@@ -686,4 +736,4 @@ async function main() {
   );
 }
 
-main().catch((e) => die((e as Error).message));
+main().catch((e) => die(e instanceof Error ? e.message : String(e)));

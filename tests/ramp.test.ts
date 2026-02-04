@@ -5,8 +5,6 @@ import {
   generateNeutralRamp,
 } from "../src/ramp.js";
 
-const STEPS_SET = new Set(STEPS);
-
 describe("STEPS", () => {
   it("includes 50–950 Tailwind-style steps", () => {
     expect(STEPS).toContain(50);

@@ -84,12 +84,16 @@ export function simulateCvd(hex: HexColor, type: CvdType): HexColor {
   });
 }
 
+function toRamp(partial: Partial<Ramp>): Ramp {
+  return partial as Ramp;
+}
+
 function mapRamp(ramp: Ramp, type: CvdType): Ramp {
   const out: Partial<Ramp> = {};
   for (const step of STEPS) {
     out[step] = simulateCvd(ramp[step], type);
   }
-  return out as Ramp;
+  return toRamp(out);
 }
 
 const SEMANTIC_KEYS: (keyof SemanticTokens)[] = [
@@ -110,12 +114,16 @@ const SEMANTIC_KEYS: (keyof SemanticTokens)[] = [
   "accent-foreground",
 ];
 
+function toSemanticTokens(partial: Partial<SemanticTokens>): SemanticTokens {
+  return partial as SemanticTokens;
+}
+
 function mapSemantic(semantic: SemanticTokens, type: CvdType): SemanticTokens {
   const out: Partial<SemanticTokens> = {};
   for (const k of SEMANTIC_KEYS) {
     out[k] = simulateCvd(semantic[k], type);
   }
-  return out as SemanticTokens;
+  return toSemanticTokens(out);
 }
 
 /**

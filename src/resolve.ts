@@ -2,6 +2,7 @@ import {
   PaletteInput,
   PaletteOptions,
   BrandArray,
+  BrandCount,
   HexColor,
   SchemeInput,
 } from "./types";
@@ -10,7 +11,7 @@ import { deriveBrandFromScheme } from "./scheme";
 
 export function resolveInputs(
   input: PaletteInput,
-  options: Required<Pick<PaletteOptions, "brandTint" | "neonChromaRolloff">>,
+  _options: Required<Pick<PaletteOptions, "brandTint" | "neonChromaRolloff">>,
 ): {
   brand: { light: BrandArray; dark: BrandArray };
   background: { light?: HexColor; dark?: HexColor };
@@ -42,8 +43,8 @@ export function resolveInputs(
 
   if ("brand" in input) {
     const brandPM = normalizePerMode(input.brand);
-    const lightArr = (brandPM.light ?? brandPM.dark) as any;
-    const darkArr = (brandPM.dark ?? brandPM.light) as any;
+    const lightArr = brandPM.light ?? brandPM.dark;
+    const darkArr = brandPM.dark ?? brandPM.light;
     if (!lightArr || !darkArr)
       throw new Error(`brand is required (provide global or both modes)`);
 
@@ -51,7 +52,7 @@ export function resolveInputs(
     assertBrandArray(darkArr, "brand.dark");
 
     return {
-      brand: { light: lightArr as BrandArray, dark: darkArr as BrandArray },
+      brand: { light: lightArr, dark: darkArr },
       background: bg,
       foreground: fg,
     };
@@ -76,6 +77,10 @@ export function resolveInputs(
   const lightBrand = deriveBrandFromScheme(lightBase, scheme);
   const darkBrand = deriveBrandFromScheme(darkBase, scheme);
 
+  function brandCount(a: BrandArray): BrandCount {
+    return a.length as BrandCount;
+  }
+
   return {
     brand: { light: lightBrand, dark: darkBrand },
     background: bg,
@@ -84,14 +89,14 @@ export function resolveInputs(
       light: {
         kind: scheme.kind,
         base: lightBase,
-        count: scheme.count ?? (lightBrand.length as any),
+        count: scheme.count ?? brandCount(lightBrand),
         spreadDegrees: scheme.spreadDegrees,
         secondaryChromaScale: scheme.secondaryChromaScale,
       },
       dark: {
         kind: scheme.kind,
         base: darkBase,
-        count: scheme.count ?? (darkBrand.length as any),
+        count: scheme.count ?? brandCount(darkBrand),
         spreadDegrees: scheme.spreadDegrees,
         secondaryChromaScale: scheme.secondaryChromaScale,
       },

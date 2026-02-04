@@ -25,18 +25,24 @@ export function assertBrandArray(
   arr.forEach((c, i) => assertHex6(c, `${label}[${i}]`));
 }
 
+export function isPerMode<T>(
+  value: T | PerMode<T> | undefined,
+): value is PerMode<T> {
+  return (
+    value != null &&
+    typeof value === "object" &&
+    ("light" in value || "dark" in value)
+  );
+}
+
 export function normalizePerMode<T>(value: T | PerMode<T> | undefined): {
   light?: T;
   dark?: T;
 } {
   if (value == null) return {};
-  if (
-    typeof value === "object" &&
-    value &&
-    ("light" in (value as any) || "dark" in (value as any))
-  ) {
-    const v = value as PerMode<T>;
-    return { light: v.light, dark: v.dark };
+  if (isPerMode(value)) {
+    return { light: value.light, dark: value.dark };
   }
-  return { light: value as T, dark: value as T };
+  const scalar = value as T;
+  return { light: scalar, dark: scalar };
 }

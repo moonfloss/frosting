@@ -21,6 +21,9 @@ export type BrandArray =
   | [HexColor, HexColor, HexColor]
   | [HexColor, HexColor, HexColor, HexColor];
 
+/** Length of a BrandArray (1–4). */
+export type BrandCount = 1 | 2 | 3 | 4;
+
 export type PerMode<T> = {
   light?: T;
   dark?: T;

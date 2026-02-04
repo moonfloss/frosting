@@ -12,6 +12,11 @@ export const STEPS: Step[] = [
   50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950,
 ];
 
+/** Build a Ramp from a partial that has every step filled (by construction). */
+function toRamp(partial: Partial<Ramp>): Ramp {
+  return partial as Ramp;
+}
+
 // Tailwind-ish lightness targets (per mode) for nice UI ramps.
 // These are "taste defaults," not the One True Curve™.
 const LIGHT_L: Record<Step, number> = {
@@ -112,7 +117,7 @@ export function generateRampFromAnchor(
     out[step] = oklchToHex(clamped);
   }
 
-  return { ramp: out as Ramp, gamutClampsApplied };
+  return { ramp: toRamp(out), gamutClampsApplied };
 }
 
 export function generateNeutralRamp(
@@ -140,5 +145,5 @@ export function generateNeutralRamp(
     out[step] = oklchToHex(clamped);
   }
 
-  return { ramp: out as Ramp, gamutClampsApplied };
+  return { ramp: toRamp(out), gamutClampsApplied };
 }
