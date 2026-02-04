@@ -1,0 +1,50 @@
+{
+  "name": "frosting",
+  "version": "1.0.0",
+  "description": "Generate structured, deterministic color palettes from a small set of inputs. Ramps, semantic tokens, and optional palette variants.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": "./dist/cli.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "prepublishOnly": "npm run build",
+    "cli": "node dist/cli.js"
+  },
+  "keywords": [
+    "color",
+    "palette",
+    "design-system",
+    "oklab",
+    "oklch",
+    "ramp",
+    "semantic-tokens",
+    "light-dark"
+  ],
+  "author": "moonfloss",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moonfloss/frosting.git"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  }
+}
