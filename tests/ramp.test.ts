@@ -3,7 +3,7 @@ import {
   STEPS,
   generateRampFromAnchor,
   generateNeutralRamp,
-} from "../src/ramp.js";
+} from "../src/color-utils/ramp.js";
 
 describe("STEPS", () => {
   it("includes 50–950 Tailwind-style steps", () => {

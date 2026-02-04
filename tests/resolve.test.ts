@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { resolveInputs } from "../src/resolve.js";
-import type { BrandArray, PaletteInput } from "../src/types.js";
+import { resolveInputs } from "../src/color-utils/resolve.js";
+import type { BrandArray, PaletteInput } from "../src/index.js";
 
 const defaultOptions = {
   brandTint: true as const,

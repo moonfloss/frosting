@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { generateSemanticTokens } from "../src/semantic.js";
-import { generateRampFromAnchor, generateNeutralRamp } from "../src/ramp.js";
+import { generateSemanticTokens } from "../src/color-utils/semantic.js";
+import { generateRampFromAnchor, generateNeutralRamp } from "../src/color-utils/ramp.js";
 
 function makeRamps(anchor: string) {
   const brand1 = generateRampFromAnchor(anchor as `#${string}`, "light", {

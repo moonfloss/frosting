@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveBrandFromScheme } from "../src/scheme.js";
+import { deriveBrandFromScheme } from "../src/color-utils/scheme.js";
 
 describe("deriveBrandFromScheme", () => {
   it("monochromatic returns same-hue anchors with varying chroma", () => {

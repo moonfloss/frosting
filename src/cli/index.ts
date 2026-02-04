@@ -6,23 +6,23 @@ import process from "node:process";
 import readline from "node:readline/promises";
 import { stdin as input, stderr as stderrOut } from "node:process";
 
-import { generatePalette } from "./index";
-import { STEPS } from "./ramp";
-import { assertBrandArray } from "./validate";
-import type {
-  PaletteInput,
-  PaletteOptions,
-  BrandArray,
-  HexColor,
-  SchemeKind,
-  PerMode,
-  PaletteConfig,
-  PaletteVariant,
-  ModePalette,
-  Ramp,
-  SemanticTokens,
-  CvdType,
-} from "./types";
+import {
+  generatePalette,
+  STEPS,
+  assertBrandArray,
+  type PaletteInput,
+  type PaletteOptions,
+  type BrandArray,
+  type HexColor,
+  type SchemeKind,
+  type PerMode,
+  type PaletteConfig,
+  type PaletteVariant,
+  type ModePalette,
+  type Ramp,
+  type SemanticTokens,
+  type CvdType,
+} from "../index";
 
 const CVD_TYPES: CvdType[] = ["protanopia", "deuteranopia", "tritanopia"];
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { simulateCvd, applyCvdToModePalette } from "../src/cvd.js";
+import { simulateCvd, applyCvdToModePalette } from "../src/color-utils/cvd.js";
 import { generatePalette } from "../src/index.js";
 
 describe("simulateCvd", () => {

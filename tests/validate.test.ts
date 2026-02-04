@@ -4,7 +4,7 @@ import {
   assertHex6,
   assertBrandArray,
   normalizePerMode,
-} from "../src/validate.js";
+} from "../src/color-utils/validate.js";
 
 describe("isValidHex6", () => {
   it("accepts valid 6-digit hex", () => {

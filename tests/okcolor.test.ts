@@ -10,7 +10,7 @@ import {
   oklchToHex,
   rgbInGamut,
   mixRgb,
-} from "../src/okcolor.js";
+} from "../src/color-utils/okcolor.js";
 
 describe("hexToRgb", () => {
   it("parses hex to 0–1 RGB", () => {

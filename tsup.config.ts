@@ -1,11 +1,19 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/cli.ts"],
+  entry: ["src/index.ts", "src/cli/index.ts", "src/ui-control/index.ts"],
   format: ["esm"],
-  dts: { entry: { index: "src/index.ts" } },
+  dts: {
+    entry: {
+      index: "src/index.ts",
+      "ui-control/index": "src/ui-control/index.ts",
+    },
+  },
   splitting: false,
   sourcemap: true,
   clean: true,
   outDir: "dist",
+  esbuildOptions(options) {
+    options.jsx = "automatic";
+  },
 });
