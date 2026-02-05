@@ -20,6 +20,7 @@
 - Deterministic output (same input → same output)
 - Pure JSON output
 - **Tailwind theming**: CSS custom properties, theme config object, and a Tailwind plugin (see [Tailwind](#tailwind))
+- **Chakra UI theming**: Theme extension for v2 with colors and semantic tokens (see [Chakra UI](#chakra-ui))
 
 ---
 
@@ -224,6 +225,82 @@ export default {
 ```
 
 Then use utilities like `bg-light-default-background`, `text-dark-default-primary`, or ramp shades like `bg-light-default-brand1-500`.
+
+---
+
+## Chakra UI
+
+The **frosting/chakra** export generates a Chakra UI v2–compatible theme from a `PaletteConfig`: color scales (brand1, brand2, neutral, etc.) and semantic tokens with built-in light/dark mode. Use it with `extendTheme` and `<ChakraProvider>`.
+
+**Peer dependency:** `@chakra-ui/react` >= 2.
+
+### Basic setup
+
+```ts
+import { generatePalette } from "frosting";
+import { generateChakraTheme } from "frosting/chakra";
+import { extendTheme, ChakraProvider } from "@chakra-ui/react";
+
+const palette = generatePalette({ brand: ["#7C3AED", "#F59E0B"] });
+const theme = extendTheme(generateChakraTheme(palette));
+
+<ChakraProvider theme={theme}>
+  <App />
+</ChakraProvider>
+```
+
+The theme adds:
+
+- **colors** — Ramps as scales: `brand1`, `brand2`, `neutral` (e.g. `brand1.500`). Use them with `colorScheme="brand1"` on components like `Button`.
+- **semanticTokens.colors** — Tokens such as `background`, `foreground`, `primary`, `primary-foreground`, `card`, `muted`, `border`, `ring`, etc., with `default` and `_dark` so Chakra’s color mode works automatically.
+
+### Options
+
+```ts
+generateChakraTheme(palette, {
+  variant: "protanopia",   // CVD variant (default: "default")
+  includeRamps: true,     // include color scales (default: true)
+  includeSemantic: true,  // include semantic tokens (default: true)
+  prefix: "frosting",     // prefix keys, e.g. frosting-brand1
+});
+```
+
+### CVD variants
+
+For color-vision-deficiency variants, generate a theme per variant and pass that theme to `ChakraProvider`. When the user picks a variant, swap the theme.
+
+```ts
+const palette = generatePalette(
+  { brand: ["#7C3AED"] },
+  { cvdVariants: ["protanopia", "deuteranopia", "tritanopia"] },
+);
+
+const defaultTheme = extendTheme(generateChakraTheme(palette));
+const cvdTheme = extendTheme(generateChakraTheme(palette, { variant: "protanopia" }));
+
+// Use defaultTheme or cvdTheme in ChakraProvider depending on user choice.
+```
+
+### Color scheme helpers
+
+```ts
+import { getChakraColorSchemes } from "frosting/chakra";
+
+const schemes = getChakraColorSchemes(palette);
+// { brand1: "brand1", brand2: "brand2", neutral: "neutral" }
+
+<Button colorScheme={schemes.brand1}>Primary</Button>
+```
+
+With `prefix: "frosting"`, the values are `"frosting-brand1"`, etc.
+
+### Demo
+
+From the repo root, run the Chakra demo:
+
+```bash
+npm run demo:chakra
+```
 
 ---
 
