@@ -23,6 +23,7 @@ import {
   type SemanticTokens,
   type CvdType,
 } from "../index";
+import { generateCssVars } from "../tailwind";
 
 const CVD_TYPES: CvdType[] = ["protanopia", "deuteranopia", "tritanopia"];
 
@@ -249,6 +250,7 @@ frosting
   config: / c:     Read config from filepath (when not using wizard).
   exclude: / e:    Comma-separated variants to exclude: light, dark, cvd, or cvd:name1,name2.
   only: / o:       Comma-separated variants to include (opposite of exclude).
+  css: / css       Write CSS custom properties to filepath (Tailwind theming vars).
   filepath1 > filepath2  file1 is always WRITE TO (config). file2 = result (redirect). Without c: we use wizard (config from prompts); with c:path we READ FROM path.
   tint             Tint neutrals (brand-tint); if not present, do not tint.
   rolloff          Roll off neon chroma; if not present, do not roll off.
@@ -266,6 +268,8 @@ Examples:
   frosting c:input.json e:cvd:p,d,t
   frosting w tint
   frosting c:input.json rolloff
+  frosting c:input.json css:palette-vars.css
+  frosting c:input.json css palette-vars.css > palette.json
 `.trim(),
   );
 }
@@ -276,6 +280,7 @@ const COLON_ALIASES: Record<string, string[]> = {
   config: ["c"],
   only: ["o"],
   exclude: ["e"],
+  css: [],
 };
 
 const MODE_SHORTCUTS: Record<string, Mode> = {
@@ -307,8 +312,16 @@ const SCHEME_SHORTCUTS: Record<string, SchemeKind> = {
   tetrad: "tetrad",
 };
 
-const RESERVED_ARGS = new Set(["wizard", "w", "tint", "rolloff"]);
-const COLON_PREFIXES = ["config:", "c:", "exclude:", "e:", "only:", "o:"];
+const RESERVED_ARGS = new Set(["wizard", "w", "tint", "rolloff", "css"]);
+const COLON_PREFIXES = [
+  "config:",
+  "c:",
+  "exclude:",
+  "e:",
+  "only:",
+  "o:",
+  "css:",
+];
 
 function isPathLikeArg(a: string): boolean {
   return !RESERVED_ARGS.has(a) && !COLON_PREFIXES.some((p) => a.startsWith(p));
@@ -330,6 +343,17 @@ function hasArg(value: string): boolean {
 
 function hasFlag(name: string): boolean {
   return process.argv.includes(`--${name}`);
+}
+
+function getCssPath(): string | undefined {
+  const colon = getColonArg("css");
+  if (colon) return colon;
+  const i = argv.indexOf("css");
+  if (i >= 0) {
+    const next = argv[i + 1];
+    if (next && isPathLikeArg(next)) return next;
+  }
+  return undefined;
 }
 
 /** Variants to exclude or include (only wins if both set). */
@@ -628,7 +652,7 @@ async function wizard(
   return { input: inputObj, options };
 }
 
-async function runWizard(configWritePath?: string) {
+async function runWizard(configWritePath?: string, cssPath?: string) {
   const filter = getFilter();
   const { input: paletteInput, options: wizardOptions } = await wizard("both");
   const options: PaletteOptions = {
@@ -643,6 +667,11 @@ async function runWizard(configWritePath?: string) {
 
   let palette = generatePalette(paletteInput, options);
   palette = applyVariantFilter(palette, filter);
+
+  if (cssPath) {
+    writeFile(cssPath, generateCssVars(palette) + "\n");
+    console.error(`\n✅ wrote CSS vars to ${cssPath}`);
+  }
 
   for (const mode of MODES) {
     if (palette.modes[mode]) printPalettePreview(palette, mode, true);
@@ -692,7 +721,11 @@ function parsePaletteInput(raw: string): PaletteInput {
   return parsed;
 }
 
-async function runFromFile(configPath: string, configWritePath?: string) {
+async function runFromFile(
+  configPath: string,
+  configWritePath?: string,
+  cssPath?: string,
+) {
   const filter = getFilter();
   const options = getOptionsFromArgv();
 
@@ -709,6 +742,12 @@ async function runFromFile(configPath: string, configWritePath?: string) {
 
   let palette = generatePalette(paletteInput, options);
   palette = applyVariantFilter(palette, filter);
+
+  if (cssPath) {
+    writeFile(cssPath, generateCssVars(palette) + "\n");
+    console.error(`✅ wrote CSS vars to ${cssPath}`);
+  }
+
   process.stdout.write(JSON.stringify(palette, null, 2) + "\n");
 }
 
@@ -722,13 +761,19 @@ async function main() {
   const configPath = getColonArg("config");
 
   if (wizardMode) {
-    const configWritePath = argv.find(isPathLikeArg);
-    return runWizard(configWritePath);
+    const cssPath = getCssPath();
+    const configWritePath = argv.find(
+      (a) => isPathLikeArg(a) && a !== cssPath,
+    );
+    return runWizard(configWritePath ?? undefined, cssPath);
   }
 
   if (configPath) {
-    const configWritePath = argv.find(isPathLikeArg);
-    return runFromFile(configPath, configWritePath);
+    const cssPath = getCssPath();
+    const configWritePath = argv.find(
+      (a) => isPathLikeArg(a) && a !== cssPath,
+    );
+    return runFromFile(configPath, configWritePath, cssPath);
   }
 
   die(

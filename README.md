@@ -19,6 +19,7 @@
 - Optional color-vision-deficiency variants
 - Deterministic output (same input → same output)
 - Pure JSON output
+- **Tailwind theming**: CSS custom properties, theme config object, and a Tailwind plugin (see [Tailwind](#tailwind))
 
 ---
 
@@ -47,9 +48,10 @@ Run `frosting` or `frosting help` to see usage.
 | Option | What it does |
 | ------ | ------------ |
 | `wizard` | Use prompt/answer wizard (if not present, read config from `config:filepath`). |
+| `config:filepath` | Read config from filepath (when not using wizard). |
 | `exclude:list` | Comma-separated variants to exclude: `light`, `dark`, `cvd`, or `cvd:name1,name2`. |
 | `only:list` | Comma-separated variants to include (opposite of exclude). |
-| `config:filepath` | Read config from filepath (when not using wizard). |
+| `css:path` / `css path` | Write CSS custom properties (Tailwind theming vars) to the given file. |
 | `filepath1 > filepath2` | Write config to filepath1, write result to filepath2 (if absent, print only). |
 
 ---
@@ -75,6 +77,8 @@ frosting wizard exclude:dark only:light
 ```bash
 frosting config:input.json
 frosting config:input.json > palette.json
+frosting config:input.json css palette-vars.css
+frosting config:input.json css:palette-vars.css > palette.json
 frosting config:input.json exclude:cvd
 frosting config:input.json exclude:cvd:protanopia,deuteranopia
 ```
@@ -177,6 +181,49 @@ Supported:
 - all
 
 Pass one or more types in `cvdVariants`; the palette is simulated (Brettel-style) for each type and emitted as `config.variants[type]` (e.g. `config.variants.deuteranopia`), with the same structure as `modes` (light/dark ramps and semantic tokens).
+
+---
+
+## Tailwind
+
+The **frosting/tailwind** export provides Tailwind-themed output from a `PaletteConfig`: CSS custom properties, a theme config object, and a Tailwind plugin. All tokens use prefixed names: `{mode}-{variant}-{token}` (e.g. `light-default-background`, `dark-protanopia-primary`).
+
+**Peer dependency:** `tailwindcss` >= 3.
+
+### CSS custom properties
+
+```ts
+import { generatePalette } from "frosting";
+import { generateCssVars } from "frosting/tailwind";
+
+const palette = generatePalette({ brand: ["#7C3AED"] });
+const css = generateCssVars(palette);
+// Write to a file and import in your app, or use the plugin (below)
+```
+
+### Tailwind theme config
+
+```ts
+import { generateTailwindTheme } from "frosting/tailwind";
+
+const theme = generateTailwindTheme(palette);
+// theme.extend in tailwind.config:
+export default {
+  theme: { extend: theme },
+};
+```
+
+### Tailwind plugin (CSS vars + theme in one go)
+
+```ts
+import { frostingPlugin } from "frosting/tailwind";
+
+export default {
+  plugins: [frostingPlugin(palette)],
+};
+```
+
+Then use utilities like `bg-light-default-background`, `text-dark-default-primary`, or ramp shades like `bg-light-default-brand1-500`.
 
 ---
 

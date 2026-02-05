@@ -17,6 +17,11 @@
       "types": "./dist/ui-control/index.d.ts",
       "import": "./dist/ui-control/index.js",
       "default": "./dist/ui-control/index.js"
+    },
+    "./tailwind": {
+      "types": "./dist/tailwind/index.d.ts",
+      "import": "./dist/tailwind/index.js",
+      "default": "./dist/tailwind/index.js"
     }
   },
   "files": [
