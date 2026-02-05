@@ -1,6 +1,6 @@
 # TO DO
 
 [ ] token templates / custom token config / prefix
-[ ] tw plugin demo app
-[ ] chakra plugin
-[ ] chakra demo
+[x] tw plugin demo app
+[x] chakra plugin
+[x] chakra demo
