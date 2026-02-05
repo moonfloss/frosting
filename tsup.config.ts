@@ -6,6 +6,7 @@ export default defineConfig({
     "src/cli/index.ts",
     "src/ui-control/index.ts",
     "src/tailwind/index.ts",
+    "src/chakra/index.ts",
   ],
   format: ["esm"],
   dts: {
@@ -13,6 +14,7 @@ export default defineConfig({
       index: "src/index.ts",
       "ui-control/index": "src/ui-control/index.ts",
       "tailwind/index": "src/tailwind/index.ts",
+      "chakra/index": "src/chakra/index.ts",
     },
   },
   splitting: false,
