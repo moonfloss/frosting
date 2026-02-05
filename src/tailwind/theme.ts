@@ -30,7 +30,7 @@ function addColorsForMode(
   colors: Record<string, string | ShadeObject>,
   mode: Mode,
   variant: string,
-  semantic: SemanticTokens,
+  _semantic: SemanticTokens,
   ramps: PaletteConfig["modes"]["light"]["ramps"],
   options: Required<Pick<TailwindThemeOptions, "includeSemantic" | "includeRamps">>,
 ): void {

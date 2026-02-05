@@ -19,7 +19,7 @@ function deriveBgFromPrimary(
 }
 
 function deriveFgFromBg(
-  bg: HexColor,
+  _bg: HexColor,
   neutral: Ramp,
   mode: "light" | "dark",
 ): HexColor {
