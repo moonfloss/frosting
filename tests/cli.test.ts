@@ -112,6 +112,38 @@ describe("CLI", () => {
     });
   });
 
+  describe("version arg", () => {
+    it("defaults palette version to 1.0.0", async () => {
+      const { stdout } = await run([`config:${FIXTURES}/brand-input.json`]);
+      const palette = JSON.parse(stdout);
+      expect(palette.version).toBe("1.0.0");
+    });
+
+    it("version: sets custom palette version", async () => {
+      const { stdout } = await run([
+        `config:${FIXTURES}/brand-input.json`,
+        "version:2.0.0",
+      ]);
+      const palette = JSON.parse(stdout);
+      expect(palette.version).toBe("2.0.0");
+    });
+
+    it("ver: alias sets custom palette version", async () => {
+      const { stdout } = await run([
+        `config:${FIXTURES}/brand-input.json`,
+        "ver:3.1.0",
+      ]);
+      const palette = JSON.parse(stdout);
+      expect(palette.version).toBe("3.1.0");
+    });
+
+    it("output does not contain generatedAt", async () => {
+      const { stdout } = await run([`config:${FIXTURES}/brand-input.json`]);
+      const palette = JSON.parse(stdout);
+      expect(palette.generatedAt).toBeUndefined();
+    });
+  });
+
   describe("variant filtering", () => {
     it("exclude:dk removes dark mode", async () => {
       const { stdout } = await run([

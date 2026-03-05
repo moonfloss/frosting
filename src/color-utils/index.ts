@@ -112,8 +112,7 @@ export function generatePalette(
   }
 
   const out: PaletteConfig = {
-    version: "1.0.0",
-    generatedAt: new Date().toISOString(),
+    version: options?.version ?? "1.0.0",
     inputs: {
       brand: resolved.brand,
       background: resolved.background,

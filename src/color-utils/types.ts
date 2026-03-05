@@ -64,6 +64,7 @@ export interface PaletteOptions {
   brandTint?: boolean; // default true
   neonChromaRolloff?: boolean; // default true
   cvdVariants?: CvdType[]; // protanopia, deuteranopia, tritanopia — simulated palettes in config.variants
+  version?: string; // user-controlled palette version, defaults to "1.0.0"
 }
 
 export interface SemanticTokens {
@@ -118,7 +119,6 @@ export interface PaletteVariant {
 
 export interface PaletteConfig {
   version: string;
-  generatedAt: string;
 
   inputs: {
     brand: { light: BrandArray; dark: BrandArray };

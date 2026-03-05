@@ -256,6 +256,7 @@ frosting v${PKG_VERSION}
   only: / o:       Comma-separated variants to include (opposite of exclude).
   css: / css       Write CSS custom properties to filepath (Tailwind theming vars).
   filepath1 > filepath2  file1 is always WRITE TO (config). file2 = result (redirect). Without c: we use wizard (config from prompts); with c:path we READ FROM path.
+  version: / ver:  Set palette version string (default "1.0.0").
   no-tint          Disable brand-tinted neutrals (enabled by default).
   no-rolloff       Disable neon chroma rolloff (enabled by default).
   --version / -v   Print version and exit.
@@ -287,6 +288,7 @@ const COLON_ALIASES: Record<string, string[]> = {
   only: ["o"],
   exclude: ["e"],
   css: [],
+  version: ["ver"],
 };
 
 const MODE_SHORTCUTS: Record<string, Mode> = {
@@ -328,6 +330,8 @@ const COLON_PREFIXES = [
   "only:",
   "o:",
   "css:",
+  "version:",
+  "ver:",
 ];
 
 function isPathLikeArg(a: string): boolean {
@@ -548,9 +552,13 @@ async function wizard(
     cvdVariants = parseCvdTypes(cvdRaw);
   }
 
+  const versionRaw = await ask(`Palette version? (default 1.0.0): `);
+  const version = versionRaw || "1.0.0";
+
   const options: PaletteOptions = {
     brandTint,
     neonChromaRolloff: neonRolloff,
+    version,
     ...(cvdVariants?.length ? { cvdVariants } : {}),
   };
 
@@ -661,11 +669,13 @@ async function wizard(
 
 async function runWizard(configWritePath?: string, cssPath?: string) {
   const filter = getFilter();
+  const versionArg = getColonArg("version");
   const { input: paletteInput, options: wizardOptions } = await wizard("both");
   const options: PaletteOptions = {
     ...wizardOptions,
     ...(hasArg("no-tint") ? { brandTint: false } : {}),
     ...(hasArg("no-rolloff") ? { neonChromaRolloff: false } : {}),
+    ...(versionArg ? { version: versionArg } : {}),
   };
 
   const inputJson = JSON.stringify(paletteInput, null, 2);
@@ -734,7 +744,11 @@ async function runFromFile(
   cssPath?: string,
 ) {
   const filter = getFilter();
-  const options = getOptionsFromArgv();
+  const versionArg = getColonArg("version");
+  const options: PaletteOptions = {
+    ...getOptionsFromArgv(),
+    ...(versionArg ? { version: versionArg } : {}),
+  };
 
   const raw = await fsPromises.readFile(
     path.resolve(process.cwd(), configPath),

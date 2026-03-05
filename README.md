@@ -309,7 +309,6 @@ npm run demo:chakra
 ```ts
 {
   version,
-  generatedAt,
 
   inputs: {...},
 

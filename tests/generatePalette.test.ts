@@ -105,6 +105,19 @@ describe("generatePalette", () => {
     );
   });
 
+  it("uses custom version from options", () => {
+    const out = generatePalette(
+      { brand: ["#7C3AED"] },
+      { version: "2.0.0" },
+    );
+    expect(out.version).toBe("2.0.0");
+  });
+
+  it("does not include generatedAt", () => {
+    const out = generatePalette({ brand: ["#7C3AED"] });
+    expect("generatedAt" in out).toBe(false);
+  });
+
   it("respects per-mode brand + background + foreground overrides", () => {
     const out = generatePalette({
       brand: { light: ["#7C3AED"], dark: ["#A78BFA"] },
