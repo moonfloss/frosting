@@ -17,7 +17,7 @@
   - triad
   - tetrad
 - Optional color-vision-deficiency variants
-- Deterministic output (same input → same output)
+- Deterministic output (same input and options → same output); use the config `version` field for versioning
 - Pure JSON output
 - **Tailwind theming**: CSS custom properties, theme config object, and a Tailwind plugin (see [Tailwind](#tailwind))
 - **Chakra UI theming**: Theme extension for v2 with colors and semantic tokens (see [Chakra UI](#chakra-ui))
@@ -34,7 +34,7 @@ npm install frosting
 
 ## CLI
 
-`frosting` includes a small CLI: use **wizard** for an interactive setup, or **config:filepath** to read a config from a file. Output goes to stdout (use `> file` to save).
+`frosting` includes a small CLI: use **wizard** (or `w`) for an interactive setup, or **config:path** (or `c:path`) to read a config from a file. Output goes to stdout (use `> file` to save).
 
 ```bash
 npx frosting
@@ -48,12 +48,19 @@ Run `frosting` or `frosting help` to see usage.
 
 | Option | What it does |
 | ------ | ------------ |
-| `wizard` | Use prompt/answer wizard (if not present, read config from `config:filepath`). |
-| `config:filepath` | Read config from filepath (when not using wizard). |
-| `exclude:list` | Comma-separated variants to exclude: `light`, `dark`, `cvd`, or `cvd:name1,name2`. |
-| `only:list` | Comma-separated variants to include (opposite of exclude). |
+| `wizard` / `w` | Use prompt/answer wizard (if not present, read config from `config:path`). |
+| `config:path` / `c:path` | Read config from filepath (when not using wizard). |
+| `exclude:list` / `e:list` | Comma-separated variants to exclude: `light`, `dark`, `cvd`, or `cvd:name1,name2`. |
+| `only:list` / `o:list` | Comma-separated variants to include (opposite of exclude). |
 | `css:path` / `css path` | Write CSS custom properties (Tailwind theming vars) to the given file. |
-| `filepath1 > filepath2` | Write config to filepath1, write result to filepath2 (if absent, print only). |
+| `version:str` / `ver:str` | Set palette version string (default `"1.0.0"`). |
+| `no-tint` | Disable brand-tinted neutrals (enabled by default). |
+| `no-rolloff` | Disable neon chroma rolloff (enabled by default). |
+| `filepath1 > filepath2` | filepath1 = where to write config; filepath2 = result (redirect). Without `c:path`, config comes from wizard prompts. |
+| `--version` / `-v` | Print version and exit. |
+| `--help` / `-h` | Show help. |
+
+**Shortcuts** (interchangeable in exclude/only lists and scheme kinds): modes `lt`=light, `dk`=dark; CVD `p`=protanopia, `de`/`deut`=deuteranopia, `t`=tritanopia; schemes `mono`=monochromatic, `a`=adjacent, `a+c`=adjacent+complementary, `tri`=triad, `tet`=tetrad.
 
 ---
 
@@ -73,7 +80,7 @@ frosting wizard exclude:dark only:light
 
 ### Config from file
 
-`frosting config:filepath` — Read config from the given file, generate palette to stdout. Use `> palette.json` to save the result.
+`frosting config:path` (or `c:path`) — Read config from the given file, generate palette to stdout. Use `> palette.json` to save the result.
 
 ```bash
 frosting config:input.json
@@ -82,6 +89,8 @@ frosting config:input.json css palette-vars.css
 frosting config:input.json css:palette-vars.css > palette.json
 frosting config:input.json exclude:cvd
 frosting config:input.json exclude:cvd:protanopia,deuteranopia
+frosting config:input.json version:1.2.0
+frosting config:input.json no-tint no-rolloff
 ```
 
 ---
@@ -189,8 +198,6 @@ Pass one or more types in `cvdVariants`; the palette is simulated (Brettel-style
 
 The **frosting/tailwind** export provides Tailwind-themed output from a `PaletteConfig`: CSS custom properties, a theme config object, and a Tailwind plugin. All tokens use prefixed names: `{mode}-{variant}-{token}` (e.g. `light-default-background`, `dark-protanopia-primary`).
 
-**Peer dependency:** `tailwindcss` >= 3.
-
 ### CSS custom properties
 
 ```ts
@@ -231,8 +238,6 @@ Then use utilities like `bg-light-default-background`, `text-dark-default-primar
 ## Chakra UI
 
 The **frosting/chakra** export generates a Chakra UI v2–compatible theme from a `PaletteConfig`: color scales (brand1, brand2, neutral, etc.) and semantic tokens with built-in light/dark mode. Use it with `extendTheme` and `<ChakraProvider>`.
-
-**Peer dependency:** `@chakra-ui/react` >= 2.
 
 ### Basic setup
 
