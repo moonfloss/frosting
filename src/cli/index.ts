@@ -24,6 +24,10 @@ import {
   type CvdType,
 } from "../index";
 import { generateCssVars } from "../tailwind";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const PKG_VERSION: string = (require("../../package.json") as { version: string }).version;
 
 const CVD_TYPES: CvdType[] = ["protanopia", "deuteranopia", "tritanopia"];
 
@@ -244,7 +248,7 @@ function writeFile(p: string, data: string) {
 function help() {
   console.log(
     `
-frosting
+frosting v${PKG_VERSION}
 
   wizard / w       Use prompt/answer wizard (if not present, read config from config:filepath).
   config: / c:     Read config from filepath (when not using wizard).
@@ -252,11 +256,13 @@ frosting
   only: / o:       Comma-separated variants to include (opposite of exclude).
   css: / css       Write CSS custom properties to filepath (Tailwind theming vars).
   filepath1 > filepath2  file1 is always WRITE TO (config). file2 = result (redirect). Without c: we use wizard (config from prompts); with c:path we READ FROM path.
-  tint             Tint neutrals (brand-tint); if not present, do not tint.
-  rolloff          Roll off neon chroma; if not present, do not roll off.
+  no-tint          Disable brand-tinted neutrals (enabled by default).
+  no-rolloff       Disable neon chroma rolloff (enabled by default).
+  --version / -v   Print version and exit.
+  --help / -h      Show this help.
 
 Shortcuts (interchangeable in lists):
-  Modes: l=light, d=dark.  CVD: p=protanopia, d=deuteranopia, t=tritanopia.
+  Modes: lt=light, dk=dark.  CVD: p=protanopia, de=deuteranopia, t=tritanopia.
   Schemes: mono=monochromatic, a=adjacent, a+c=adjacent+complementary, tri=triad, tet=tetrad.
 
 Examples:
@@ -265,9 +271,9 @@ Examples:
   frosting c:input.json
   frosting c:input.json e:dark o:l
   frosting c:input.json e:cvd
-  frosting c:input.json e:cvd:p,d,t
-  frosting w tint
-  frosting c:input.json rolloff
+  frosting c:input.json e:cvd:p,de,t
+  frosting c:input.json no-tint
+  frosting c:input.json no-rolloff
   frosting c:input.json css:palette-vars.css
   frosting c:input.json css palette-vars.css > palette.json
 `.trim(),
@@ -284,16 +290,17 @@ const COLON_ALIASES: Record<string, string[]> = {
 };
 
 const MODE_SHORTCUTS: Record<string, Mode> = {
-  l: "light",
+  lt: "light",
   light: "light",
-  d: "dark",
+  dk: "dark",
   dark: "dark",
 };
 
 const CVD_SHORTCUTS: Record<string, CvdType> = {
   p: "protanopia",
   protanopia: "protanopia",
-  d: "deuteranopia",
+  de: "deuteranopia",
+  deut: "deuteranopia",
   deuteranopia: "deuteranopia",
   t: "tritanopia",
   tritanopia: "tritanopia",
@@ -312,7 +319,7 @@ const SCHEME_SHORTCUTS: Record<string, SchemeKind> = {
   tetrad: "tetrad",
 };
 
-const RESERVED_ARGS = new Set(["wizard", "w", "tint", "rolloff", "css"]);
+const RESERVED_ARGS = new Set(["wizard", "w", "no-tint", "no-rolloff", "css"]);
 const COLON_PREFIXES = [
   "config:",
   "c:",
@@ -422,8 +429,8 @@ function getFilter(): VariantFilter {
 
 function getOptionsFromArgv(): PaletteOptions {
   return {
-    brandTint: hasArg("tint"),
-    neonChromaRolloff: hasArg("rolloff"),
+    brandTint: !hasArg("no-tint"),
+    neonChromaRolloff: !hasArg("no-rolloff"),
   };
 }
 
@@ -576,7 +583,7 @@ async function wizard(
       }
 
       const fg = await ask(
-        `[${m}] Foreground override? (#RRGGBB or leave blank for auto: `,
+        `[${m}] Foreground override? (#RRGGBB or leave blank for auto): `,
       );
       if (fg) {
         if (!isHex6(fg)) die(`Invalid foreground hex: ${fg}`);
@@ -657,8 +664,8 @@ async function runWizard(configWritePath?: string, cssPath?: string) {
   const { input: paletteInput, options: wizardOptions } = await wizard("both");
   const options: PaletteOptions = {
     ...wizardOptions,
-    ...(hasArg("tint") ? { brandTint: true } : {}),
-    ...(hasArg("rolloff") ? { neonChromaRolloff: true } : {}),
+    ...(hasArg("no-tint") ? { brandTint: false } : {}),
+    ...(hasArg("no-rolloff") ? { neonChromaRolloff: false } : {}),
   };
 
   const inputJson = JSON.stringify(paletteInput, null, 2);
@@ -752,7 +759,12 @@ async function runFromFile(
 }
 
 async function main() {
-  if (argv.length === 0 || argv[0] === "help" || hasFlag("help")) {
+  if (hasFlag("version") || argv.includes("-v")) {
+    console.log(PKG_VERSION);
+    return;
+  }
+
+  if (argv.length === 0 || argv[0] === "help" || hasFlag("help") || argv.includes("-h")) {
     help();
     return;
   }
