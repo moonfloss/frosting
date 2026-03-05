@@ -61,4 +61,61 @@ describe("generatePalette", () => {
     expect(out.variants!.deuteranopia.type).toBe("deuteranopia");
     expect(out.variants!.tritanopia.type).toBe("tritanopia");
   });
+
+  it("variants is undefined when cvdVariants not requested", () => {
+    const out = generatePalette({ brand: ["#7C3AED"] });
+    expect(out.variants).toBeUndefined();
+  });
+
+  it("accepts 4 brand colors", () => {
+    const out = generatePalette({
+      brand: ["#7C3AED", "#F59E0B", "#10B981", "#EF4444"],
+    });
+    expect(out.modes.light.ramps.brand1).toBeDefined();
+    expect(out.modes.light.ramps.brand2).toBeDefined();
+    expect(out.modes.light.ramps.brand3).toBeDefined();
+    expect(out.modes.light.ramps.brand4).toBeDefined();
+  });
+
+  it("brandTint: false produces different neutrals", () => {
+    const tinted = generatePalette(
+      { brand: ["#7C3AED"] },
+      { brandTint: true },
+    );
+    const untinted = generatePalette(
+      { brand: ["#7C3AED"] },
+      { brandTint: false },
+    );
+    expect(tinted.modes.light.ramps.neutral[500]).not.toBe(
+      untinted.modes.light.ramps.neutral[500],
+    );
+  });
+
+  it("neonChromaRolloff: false produces different ramps", () => {
+    const on = generatePalette(
+      { brand: ["#FF0066"] },
+      { neonChromaRolloff: true },
+    );
+    const off = generatePalette(
+      { brand: ["#FF0066"] },
+      { neonChromaRolloff: false },
+    );
+    expect(on.modes.light.ramps.brand1[50]).not.toBe(
+      off.modes.light.ramps.brand1[50],
+    );
+  });
+
+  it("respects per-mode brand + background + foreground overrides", () => {
+    const out = generatePalette({
+      brand: { light: ["#7C3AED"], dark: ["#A78BFA"] },
+      background: { light: "#FFFFFF", dark: "#0B0B0C" },
+      foreground: { light: "#171717", dark: "#FAFAFA" },
+    });
+    expect(out.modes.light.semantic.background).toBe("#FFFFFF");
+    expect(out.modes.dark.semantic.background).toBe("#0B0B0C");
+    expect(out.modes.light.semantic.foreground).toBe("#171717");
+    expect(out.modes.dark.semantic.foreground).toBe("#FAFAFA");
+    expect(out.modes.light.ramps.brand1[500]).toBe("#7C3AED");
+    expect(out.modes.dark.ramps.brand1[500]).toBe("#A78BFA");
+  });
 });

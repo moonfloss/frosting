@@ -4,6 +4,7 @@ import {
   assertHex6,
   assertBrandArray,
   normalizePerMode,
+  isPerMode,
 } from "../src/color-utils/validate.js";
 
 describe("isValidHex6", () => {
@@ -77,5 +78,32 @@ describe("normalizePerMode", () => {
     expect(
       normalizePerMode({ light: "#fff", dark: "#000" }),
     ).toEqual({ light: "#fff", dark: "#000" });
+  });
+});
+
+describe("isPerMode", () => {
+  it("returns true for object with light key", () => {
+    expect(isPerMode({ light: "#fff" })).toBe(true);
+  });
+
+  it("returns true for object with dark key", () => {
+    expect(isPerMode({ dark: "#000" })).toBe(true);
+  });
+
+  it("returns true for object with both keys", () => {
+    expect(isPerMode({ light: "#fff", dark: "#000" })).toBe(true);
+  });
+
+  it("returns false for scalar string", () => {
+    expect(isPerMode("#fff")).toBe(false);
+  });
+
+  it("returns false for null/undefined", () => {
+    expect(isPerMode(null)).toBe(false);
+    expect(isPerMode(undefined)).toBe(false);
+  });
+
+  it("returns false for array", () => {
+    expect(isPerMode(["#fff"])).toBe(false);
   });
 });

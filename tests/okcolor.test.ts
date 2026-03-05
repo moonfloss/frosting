@@ -10,6 +10,8 @@ import {
   oklchToHex,
   rgbInGamut,
   mixRgb,
+  srgbToLinear,
+  linearToSrgb,
 } from "../src/color-utils/okcolor.js";
 
 describe("hexToRgb", () => {
@@ -112,5 +114,32 @@ describe("mixRgb", () => {
     expect(mid.r).toBe(0.5);
     expect(mid.g).toBe(0.5);
     expect(mid.b).toBe(0.5);
+  });
+});
+
+describe("srgbToLinear / linearToSrgb", () => {
+  it("round-trips through linear and back", () => {
+    for (const v of [0, 0.01, 0.04045, 0.1, 0.5, 0.9, 1.0]) {
+      expect(linearToSrgb(srgbToLinear(v))).toBeCloseTo(v, 5);
+    }
+  });
+
+  it("srgbToLinear maps 0 to 0 and 1 to 1", () => {
+    expect(srgbToLinear(0)).toBe(0);
+    expect(srgbToLinear(1)).toBeCloseTo(1, 10);
+  });
+
+  it("linearToSrgb maps 0 to 0 and 1 to 1", () => {
+    expect(linearToSrgb(0)).toBe(0);
+    expect(linearToSrgb(1)).toBeCloseTo(1, 10);
+  });
+
+  it("srgbToLinear is monotonic", () => {
+    let prev = -1;
+    for (let i = 0; i <= 10; i++) {
+      const v = srgbToLinear(i / 10);
+      expect(v).toBeGreaterThanOrEqual(prev);
+      prev = v;
+    }
   });
 });

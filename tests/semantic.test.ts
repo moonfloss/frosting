@@ -96,4 +96,41 @@ describe("generateSemanticTokens", () => {
     });
     expect(tokens.secondary).toBeDefined();
   });
+
+  it("accent falls through brand2 > brand3 > brand4 > brand1", () => {
+    const ramps = makeRamps("#7C3AED");
+    const brand3 = generateRampFromAnchor("#10B981", "light", {
+      neonChromaRolloff: true,
+    }).ramp;
+
+    const withBrand3 = generateSemanticTokens({
+      mode: "light",
+      ramps: { ...ramps, brand3 },
+    });
+    expect(withBrand3.accent).toBe(brand3[500]);
+
+    const withoutExtra = generateSemanticTokens({
+      mode: "light",
+      ramps,
+    });
+    expect(withoutExtra.accent).toBe(ramps.brand1[500]);
+  });
+
+  it("dark mode with provided overrides uses them", () => {
+    const brand1 = generateRampFromAnchor("#7C3AED", "dark", {
+      neonChromaRolloff: true,
+    }).ramp;
+    const neutral = generateNeutralRamp("#7C3AED", "dark", {
+      brandTint: true,
+      neonChromaRolloff: true,
+    }).ramp;
+    const tokens = generateSemanticTokens({
+      mode: "dark",
+      ramps: { brand1, neutral },
+      providedBackground: "#0A0A0A",
+      providedForeground: "#FAFAFA",
+    });
+    expect(tokens.background).toBe("#0A0A0A");
+    expect(tokens.foreground).toBe("#FAFAFA");
+  });
 });
