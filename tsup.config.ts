@@ -1,5 +1,7 @@
 import { defineConfig } from "tsup";
 
+const sourcemap = !!process.env.SOURCEMAP;
+
 const libraryEntries = [
   "src/index.ts",
   "src/ui-control/index.ts",
@@ -20,7 +22,7 @@ export default defineConfig([
     format: ["esm"],
     dts: { entry: dtsEntry },
     splitting: false,
-    sourcemap: true,
+    sourcemap,
     clean: true,
     outDir: "dist",
     esbuildOptions(options) {
@@ -32,7 +34,7 @@ export default defineConfig([
     format: ["cjs"],
     dts: { entry: dtsEntry },
     splitting: false,
-    sourcemap: true,
+    sourcemap,
     outDir: "dist",
     esbuildOptions(options) {
       options.jsx = "automatic";

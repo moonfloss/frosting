@@ -48,6 +48,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "build:sourcemap": "SOURCEMAP=1 tsup",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix",
     "test": "vitest",
