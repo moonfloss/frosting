@@ -3,30 +3,34 @@
   "version": "1.0.0",
   "description": "Generate structured, deterministic color palettes from a small set of inputs. Ramps, semantic tokens, and optional palette variants.",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": "./dist/cli/index.js",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./ui-control": {
       "types": "./dist/ui-control/index.d.ts",
       "import": "./dist/ui-control/index.js",
-      "default": "./dist/ui-control/index.js"
+      "require": "./dist/ui-control/index.cjs"
     },
     "./tailwind": {
       "types": "./dist/tailwind/index.d.ts",
       "import": "./dist/tailwind/index.js",
-      "default": "./dist/tailwind/index.js"
+      "require": "./dist/tailwind/index.cjs"
     },
     "./chakra": {
       "types": "./dist/chakra/index.d.ts",
       "import": "./dist/chakra/index.js",
-      "default": "./dist/chakra/index.js"
+      "require": "./dist/chakra/index.cjs"
     }
   },
   "files": [
