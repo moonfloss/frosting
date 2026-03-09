@@ -1,4 +1,4 @@
-import type { FieldRenderProps, FieldWrapperProps } from "./types";
+import type { FieldWrapperProps } from "./types";
 
 export function TextField<T extends string = string>({
   value,

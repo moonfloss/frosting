@@ -1,4 +1,4 @@
-import type { FieldRenderProps, FieldWrapperProps } from "./types";
+import type { FieldWrapperProps } from "./types";
 
 export interface CheckboxFieldProps extends Omit<FieldWrapperProps<boolean>, "value" | "onChange"> {
   value: boolean;

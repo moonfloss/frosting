@@ -1,14 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { generatePalette } from "../index";
-import type {
-  PaletteConfig,
-  PaletteInput,
-  PaletteOptions,
-  HexColor,
-  BrandArray,
-  SchemeKind,
-  CvdType,
-} from "../index";
+import { useEffect, useState } from "react";
+import type { CvdType, SchemeKind } from "../index";
 import {
   RadioGroupField,
   ColorField,
@@ -25,129 +16,24 @@ import {
   HtmlCheckboxField,
   HtmlCheckboxGroupField,
 } from "./html";
+import {
+  PaletteConfigForm,
+  type PaletteConfigFormRenderProps,
+} from "./PaletteConfigForm";
 import { RampPreview } from "./RampPreview";
 import { SemanticPreview } from "./SemanticPreview";
+import { CVD_OPTIONS, SCHEME_KINDS } from "./paletteConfigFormModel";
 
-const SCHEME_KINDS: SchemeKind[] = [
-  "monochromatic",
-  "adjacent",
-  "adjacent+complementary",
-  "triad",
-  "tetrad",
-];
-
-const CVD_OPTIONS: CvdType[] = ["protanopia", "deuteranopia", "tritanopia"];
-
-const HEX_REGEX = /^#[0-9a-fA-F]{6}$/;
-function parseHex(s: string): HexColor | null {
-  const n = s.trim();
-  if (!n) return null;
-  const withHash = n.startsWith("#") ? n : `#${n}`;
-  return HEX_REGEX.test(withHash) ? (withHash as HexColor) : null;
-}
-
-function toBrandArray(arr: HexColor[]): BrandArray {
-  if (arr.length === 1) return [arr[0]];
-  if (arr.length === 2) return [arr[0], arr[1]];
-  if (arr.length === 3) return [arr[0], arr[1], arr[2]];
-  return [arr[0], arr[1], arr[2], arr[3]];
-}
-
-export function ConfigForm() {
-  const [inputMode, setInputMode] = useState<"brand" | "scheme">("brand");
-  const [brandColors, setBrandColors] = useState<string[]>(["#6366f1"]);
-  const [schemeKind, setSchemeKind] = useState<SchemeKind>("adjacent");
-  const [schemeBase, setSchemeBase] = useState("#6366f1");
-  const [schemeCount, setSchemeCount] = useState<1 | 2 | 3 | 4>(2);
-  const [spreadDegrees, setSpreadDegrees] = useState(30);
-  const [secondaryChromaScale, setSecondaryChromaScale] = useState(0.8);
-  const [backgroundLight, setBackgroundLight] = useState("");
-  const [backgroundDark, setBackgroundDark] = useState("");
-  const [foregroundLight, setForegroundLight] = useState("");
-  const [foregroundDark, setForegroundDark] = useState("");
-  const [brandTint, setBrandTint] = useState(true);
-  const [neonChromaRolloff, setNeonChromaRolloff] = useState(true);
-  const [cvdVariants, setCvdVariants] = useState<CvdType[]>([]);
+function ConfigFormContent({
+  form,
+}: {
+  form: PaletteConfigFormRenderProps;
+}) {
   const [previewMode, setPreviewMode] = useState<"light" | "dark">("light");
   const [previewVariant, setPreviewVariant] = useState<"default" | CvdType>(
     "default",
   );
-
-  const input: PaletteInput | null = useMemo(() => {
-    const bgLight = parseHex(backgroundLight);
-    const bgDark = parseHex(backgroundDark);
-    const fgLight = parseHex(foregroundLight);
-    const fgDark = parseHex(foregroundDark);
-    const bg =
-      bgLight || bgDark
-        ? {
-            ...(bgLight && { light: bgLight }),
-            ...(bgDark && { dark: bgDark }),
-          }
-        : undefined;
-    const fg =
-      fgLight || fgDark
-        ? {
-            ...(fgLight && { light: fgLight }),
-            ...(fgDark && { dark: fgDark }),
-          }
-        : undefined;
-
-    if (inputMode === "brand") {
-      const hexes = brandColors
-        .map((c) => parseHex(c))
-        .filter((h): h is HexColor => h != null);
-      if (hexes.length < 1) return null;
-      return {
-        brand: toBrandArray(hexes),
-        background: bg,
-        foreground: fg,
-      };
-    }
-    const baseHex = parseHex(schemeBase);
-    if (!baseHex) return null;
-    return {
-      scheme: {
-        kind: schemeKind,
-        base: baseHex,
-        count: schemeCount,
-        spreadDegrees,
-        secondaryChromaScale,
-      },
-      background: bg,
-      foreground: fg,
-    };
-  }, [
-    inputMode,
-    brandColors,
-    schemeKind,
-    schemeBase,
-    schemeCount,
-    spreadDegrees,
-    secondaryChromaScale,
-    backgroundLight,
-    backgroundDark,
-    foregroundLight,
-    foregroundDark,
-  ]);
-
-  const options: PaletteOptions = useMemo(
-    () => ({
-      brandTint,
-      neonChromaRolloff,
-      cvdVariants: cvdVariants.length ? cvdVariants : undefined,
-    }),
-    [brandTint, neonChromaRolloff, cvdVariants],
-  );
-
-  const palette: PaletteConfig | null = useMemo(() => {
-    if (!input) return null;
-    try {
-      return generatePalette(input, options);
-    } catch {
-      return null;
-    }
-  }, [input, options]);
+  const { fields, brandColors, palette, values } = form;
 
   const modePalette =
     palette &&
@@ -163,31 +49,7 @@ export function ConfigForm() {
     ) {
       setPreviewVariant("default");
     }
-  }, [palette?.variants, previewVariant]);
-
-  const setBrandColor = (index: number, value: string) => {
-    setBrandColors((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
-    });
-  };
-
-  const addBrandColor = () => {
-    if (brandColors.length >= 4) return;
-    setBrandColors((prev) => [...prev, "#94a3b8"]);
-  };
-
-  const removeBrandColor = () => {
-    if (brandColors.length <= 1) return;
-    setBrandColors((prev) => prev.slice(0, -1));
-  };
-
-  const toggleCvd = (cvd: CvdType) => {
-    setCvdVariants((prev) =>
-      prev.includes(cvd) ? prev.filter((x) => x !== cvd) : [...prev, cvd],
-    );
-  };
+  }, [palette?.variants, previewVariant, setPreviewVariant]);
 
   return (
     <div className="flex min-h-screen flex-col gap-6 bg-gray-100 p-6 md:flex-row">
@@ -196,8 +58,8 @@ export function ConfigForm() {
 
         <div className="mb-4">
           <RadioGroupField<"brand" | "scheme">
-            value={inputMode}
-            onChange={setInputMode}
+            value={fields.inputMode.value}
+            onChange={fields.inputMode.onChange}
             label="Input mode"
             options={[
               { value: "brand", label: "Brand colors" },
@@ -207,7 +69,7 @@ export function ConfigForm() {
           />
         </div>
 
-        {inputMode === "brand" && (
+        {values.inputMode === "brand" && (
           <div className="mb-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">
@@ -216,16 +78,16 @@ export function ConfigForm() {
               <div className="flex gap-1">
                 <button
                   type="button"
-                  onClick={addBrandColor}
-                  disabled={brandColors.length >= 4}
+                  onClick={() => brandColors.add()}
+                  disabled={!brandColors.canAdd}
                   className="rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
                 >
                   + Add
                 </button>
                 <button
                   type="button"
-                  onClick={removeBrandColor}
-                  disabled={brandColors.length <= 1}
+                  onClick={() => brandColors.remove()}
+                  disabled={!brandColors.canRemove}
                   className="rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
                 >
                   − Remove
@@ -233,12 +95,12 @@ export function ConfigForm() {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              {brandColors.map((color, i) => (
+              {brandColors.fields.map((field) => (
                 <ColorField
-                  key={i}
-                  value={color}
-                  onChange={(hex) => setBrandColor(i, hex)}
-                  onTextChange={(raw) => setBrandColor(i, raw)}
+                  key={field.index}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onTextChange={field.onTextChange}
                   render={(props) => <HtmlColorField {...props} />}
                 />
               ))}
@@ -246,26 +108,26 @@ export function ConfigForm() {
           </div>
         )}
 
-        {inputMode === "scheme" && (
+        {values.inputMode === "scheme" && (
           <div className="mb-4 space-y-3">
             <SelectField<SchemeKind>
-              value={schemeKind}
-              onChange={setSchemeKind}
+              value={fields.schemeKind.value}
+              onChange={fields.schemeKind.onChange}
               label="Kind"
               options={SCHEME_KINDS.map((k) => ({ value: k, label: k }))}
               render={(props) => <HtmlSelectField {...props} />}
             />
             <ColorField
-              value={schemeBase}
-              onChange={setSchemeBase}
-              onTextChange={setSchemeBase}
+              value={fields.schemeBase.value}
+              onChange={fields.schemeBase.onChange}
+              onTextChange={fields.schemeBase.onTextChange}
               label="Base"
               className="mt-1"
               render={(props) => <HtmlColorField {...props} />}
             />
             <SelectField<1 | 2 | 3 | 4>
-              value={schemeCount}
-              onChange={setSchemeCount}
+              value={fields.schemeCount.value}
+              onChange={fields.schemeCount.onChange}
               label="Count"
               options={([1, 2, 3, 4] as const).map((n) => ({
                 value: n,
@@ -274,8 +136,8 @@ export function ConfigForm() {
               render={(props) => <HtmlSelectField {...props} />}
             />
             <SliderField
-              value={spreadDegrees}
-              onChange={setSpreadDegrees}
+              value={fields.spreadDegrees.value}
+              onChange={fields.spreadDegrees.onChange}
               label="Spread degrees"
               min={0}
               max={90}
@@ -283,8 +145,8 @@ export function ConfigForm() {
               render={(props) => <HtmlSliderField {...props} />}
             />
             <SliderField
-              value={secondaryChromaScale}
-              onChange={setSecondaryChromaScale}
+              value={fields.secondaryChromaScale.value}
+              onChange={fields.secondaryChromaScale.onChange}
               label="Secondary chroma scale"
               min={0}
               max={1}
@@ -298,30 +160,30 @@ export function ConfigForm() {
           <span className="text-sm font-medium text-gray-700">Overrides</span>
           <div className="mt-2 space-y-2">
             <ColorField
-              value={backgroundLight}
-              onChange={setBackgroundLight}
-              onTextChange={setBackgroundLight}
+              value={fields.backgroundLight.value}
+              onChange={fields.backgroundLight.onChange}
+              onTextChange={fields.backgroundLight.onTextChange}
               label="Bg light"
               render={(props) => <HtmlColorField {...props} />}
             />
             <ColorField
-              value={backgroundDark}
-              onChange={setBackgroundDark}
-              onTextChange={setBackgroundDark}
+              value={fields.backgroundDark.value}
+              onChange={fields.backgroundDark.onChange}
+              onTextChange={fields.backgroundDark.onTextChange}
               label="Bg dark"
               render={(props) => <HtmlColorField {...props} />}
             />
             <ColorField
-              value={foregroundLight}
-              onChange={setForegroundLight}
-              onTextChange={setForegroundLight}
+              value={fields.foregroundLight.value}
+              onChange={fields.foregroundLight.onChange}
+              onTextChange={fields.foregroundLight.onTextChange}
               label="Fg light"
               render={(props) => <HtmlColorField {...props} />}
             />
             <ColorField
-              value={foregroundDark}
-              onChange={setForegroundDark}
-              onTextChange={setForegroundDark}
+              value={fields.foregroundDark.value}
+              onChange={fields.foregroundDark.onChange}
+              onTextChange={fields.foregroundDark.onTextChange}
               label="Fg dark"
               render={(props) => <HtmlColorField {...props} />}
             />
@@ -332,14 +194,14 @@ export function ConfigForm() {
           <span className="text-sm font-medium text-gray-700">Options</span>
           <div className="mt-2 space-y-2">
             <CheckboxField
-              value={brandTint}
-              onChange={setBrandTint}
+              value={fields.brandTint.value}
+              onChange={fields.brandTint.onChange}
               label="Brand tint neutrals"
               render={(props) => <HtmlCheckboxField {...props} />}
             />
             <CheckboxField
-              value={neonChromaRolloff}
-              onChange={setNeonChromaRolloff}
+              value={fields.neonChromaRolloff.value}
+              onChange={fields.neonChromaRolloff.onChange}
               label="Neon chroma rolloff"
               render={(props) => <HtmlCheckboxField {...props} />}
             />
@@ -348,8 +210,8 @@ export function ConfigForm() {
 
         <div className="border-t border-gray-200 pt-4">
           <CheckboxGroupField<CvdType>
-            values={cvdVariants}
-            toggle={toggleCvd}
+            values={fields.cvdVariants.values}
+            toggle={fields.cvdVariants.toggle}
             label="CVD variants"
             options={CVD_OPTIONS.map((cvd) => ({ value: cvd, label: cvd }))}
             render={(props) => <HtmlCheckboxGroupField {...props} />}
@@ -466,4 +328,8 @@ export function ConfigForm() {
       </main>
     </div>
   );
+}
+
+export function ConfigForm() {
+  return <PaletteConfigForm>{(form) => <ConfigFormContent form={form} />}</PaletteConfigForm>;
 }

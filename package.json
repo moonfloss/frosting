@@ -17,6 +17,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./color-utils": {
+      "types": "./dist/color-utils/index.d.ts",
+      "import": "./dist/color-utils/index.js",
+      "require": "./dist/color-utils/index.cjs"
+    },
     "./ui-control": {
       "types": "./dist/ui-control/index.d.ts",
       "import": "./dist/ui-control/index.js",
@@ -31,6 +36,11 @@
       "types": "./dist/chakra/index.d.ts",
       "import": "./dist/chakra/index.js",
       "require": "./dist/chakra/index.cjs"
+    },
+    "./cli": {
+      "types": "./dist/cli/api.d.ts",
+      "import": "./dist/cli/api.js",
+      "require": "./dist/cli/api.cjs"
     }
   },
   "files": [
@@ -53,6 +63,7 @@
     "lint:fix": "eslint src tests --fix",
     "test": "vitest",
     "test:run": "vitest run",
+    "pack:local": "npm run build && npm pack",
     "prepublishOnly": "npm run test:run && npm run build",
     "cli": "node dist/cli/index.js",
     "demo": "cd src/ui-control/demo && npm run dev",
@@ -77,15 +88,19 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "eslint": "^9.39.2",
+    "jsdom": "^26.1.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "tsup": "^8.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
     "tailwindcss": "^3.0.0",
     "typescript-eslint": "^8.56.0",
     "vitest": "^3.0.0"

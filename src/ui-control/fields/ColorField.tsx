@@ -1,5 +1,5 @@
 import type { HexColor } from "../../index";
-import type { FieldRenderProps, FieldWrapperPropsBase } from "./types";
+import type { FieldWrapperPropsBase } from "./types";
 
 const HEX_REGEX = /^#[0-9a-fA-F]{6}$/;
 function isValidHex(s: string): s is HexColor {

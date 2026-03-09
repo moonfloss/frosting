@@ -117,6 +117,191 @@ You now have:
 
 ---
 
+## UI control
+
+The `frosting/ui-control` entrypoint includes the existing `ConfigForm` convenience component plus a lower-level `PaletteConfigForm` wrapper for custom UIs.
+
+### Default form
+
+```tsx
+import { ConfigForm } from "frosting/ui-control";
+
+export function PaletteBuilder() {
+  return <ConfigForm />;
+}
+```
+
+### Composable wrapper
+
+`PaletteConfigForm` owns editable values and exposes typed field bindings, normalized `input`/`options`, an optional live `palette`, and a submit handler. This lets you render with your own component library while still producing the same payload that `ConfigForm` uses.
+
+### What you get
+
+`PaletteConfigForm` render props expose:
+
+- `values` - raw editable form values
+- `fields` - typed controllers for single-value fields such as `inputMode`, `schemeKind`, `schemeBase`, and overrides/options
+- `brandColors` - helpers for repeated brand color inputs: `fields`, `add()`, `remove()`, `set()`, `canAdd`, `canRemove`
+- `paletteInput` - normalized `PaletteInput | null`
+- `paletteOptions` - normalized `PaletteOptions`
+- `palette` - live generated palette when the current values are valid
+- `isValid` - whether the current values can be converted into a palette input
+- `handleSubmit` and `submit()` - submit helpers for custom forms
+
+This makes it easy to:
+
+- keep the default `ConfigForm` if you want a ready-made UI
+- render your own inputs with another component library
+- preview live palette output while handling submit separately
+- plug the normalized `input` and `options` into your own workflow
+
+```tsx
+import { PaletteConfigForm } from "frosting/ui-control";
+
+export function CustomPaletteBuilder() {
+  return (
+    <PaletteConfigForm
+      onSubmit={({ input, options }) => {
+        console.log(input, options);
+      }}
+    >
+      {(form) => (
+        <form onSubmit={form.handleSubmit}>
+          <button
+            type="button"
+            onClick={() => form.fields.inputMode.onChange("scheme")}
+          >
+            Use scheme
+          </button>
+          <input
+            value={form.fields.schemeBase.value}
+            onChange={(event) =>
+              form.fields.schemeBase.onTextChange(event.target.value)
+            }
+          />
+          <button type="submit" disabled={!form.isValid}>
+            Submit
+          </button>
+        </form>
+      )}
+    </PaletteConfigForm>
+  );
+}
+```
+
+### Custom UI example
+
+You can render your own controls while still using frosting's normalization and preview logic:
+
+```tsx
+import { PaletteConfigForm, SCHEME_KINDS } from "frosting/ui-control";
+
+export function CustomPaletteBuilder() {
+  return (
+    <PaletteConfigForm
+      initialValues={{
+        inputMode: "scheme",
+        schemeKind: "triad",
+        cvdVariants: ["deuteranopia"],
+      }}
+      onSubmit={({ values, input, options, palette }) => {
+        console.log(values);
+        console.log(input, options);
+        console.log(palette);
+      }}
+    >
+      {(form) => (
+        <form onSubmit={form.handleSubmit}>
+          <select
+            value={form.fields.inputMode.value}
+            onChange={(event) =>
+              form.fields.inputMode.onChange(
+                event.target.value as "brand" | "scheme",
+              )
+            }
+          >
+            <option value="brand">Brand colors</option>
+            <option value="scheme">Scheme</option>
+          </select>
+
+          {form.values.inputMode === "brand" ? (
+            <>
+              {form.brandColors.fields.map((field) => (
+                <input
+                  key={field.index}
+                  value={field.value}
+                  onChange={(event) =>
+                    field.onTextChange(event.target.value)
+                  }
+                  placeholder="#000000"
+                />
+              ))}
+              <button
+                type="button"
+                onClick={() => form.brandColors.add()}
+                disabled={!form.brandColors.canAdd}
+              >
+                Add color
+              </button>
+            </>
+          ) : (
+            <>
+              <select
+                value={form.fields.schemeKind.value}
+                onChange={(event) =>
+                  form.fields.schemeKind.onChange(
+                    event.target.value as (typeof SCHEME_KINDS)[number],
+                  )
+                }
+              >
+                {SCHEME_KINDS.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {kind}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={form.fields.schemeBase.value}
+                onChange={(event) =>
+                  form.fields.schemeBase.onTextChange(event.target.value)
+                }
+                placeholder="#000000"
+              />
+            </>
+          )}
+
+          {!form.isValid && <p>Enter a valid brand color or scheme base.</p>}
+          {form.palette && <pre>{JSON.stringify(form.paletteInput, null, 2)}</pre>}
+
+          <button type="submit" disabled={!form.isValid}>
+            Submit
+          </button>
+        </form>
+      )}
+    </PaletteConfigForm>
+  );
+}
+```
+
+### Helper exports
+
+If you want to build your own state layer instead of using the wrapper, `frosting/ui-control` also exports:
+
+- `DEFAULT_PALETTE_CONFIG_FORM_VALUES`
+- `mergePaletteConfigFormValues()`
+- `valuesToPaletteInput()`
+- `valuesToPaletteOptions()`
+- `parseHex()`
+- `toBrandArray()`
+- `SCHEME_KINDS`
+- `CVD_OPTIONS`
+
+These are useful if you want to keep state in another form library but still reuse frosting's normalization rules.
+
+The repo demo under `src/ui-control/demo` shows the wrapper rendered with `semantic-ui-react`.
+
+---
+
 ## Basic usage
 
 ### Explicit brand colors
