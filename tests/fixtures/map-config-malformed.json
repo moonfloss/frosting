@@ -1,0 +1,12 @@
+{
+  "template": {
+    "light": {
+      "surface": {
+        "page": ""
+      }
+    }
+  },
+  "mappings": {
+    "light.surface.page": "light.background"
+  }
+}

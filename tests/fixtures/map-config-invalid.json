@@ -1,0 +1,5 @@
+{
+  "mappings": {
+    "light.text.primary": "light.foreground"
+  }
+}

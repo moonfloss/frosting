@@ -50,6 +50,7 @@ Run `frosting` or `frosting help` to see usage.
 | ------ | ------------ |
 | `wizard` / `w` | Use prompt/answer wizard (if not present, read config from `config:path`). |
 | `config:path` / `c:path` | Read config from filepath (when not using wizard). |
+| `map:path` / `m:path` | Read mapper config JSON and emit mapped output JSON instead of raw `PaletteConfig`. |
 | `exclude:list` / `e:list` | Comma-separated variants to exclude: `light`, `dark`, `cvd`, or `cvd:name1,name2`. |
 | `only:list` / `o:list` | Comma-separated variants to include (opposite of exclude). |
 | `css:path` / `css path` | Write CSS custom properties (Tailwind theming vars) to the given file. |
@@ -91,6 +92,7 @@ frosting config:input.json exclude:cvd
 frosting config:input.json exclude:cvd:protanopia,deuteranopia
 frosting config:input.json version:1.2.0
 frosting config:input.json no-tint no-rolloff
+frosting config:input.json map:theme-map.json > theme.json
 ```
 
 ---
@@ -376,6 +378,206 @@ Supported:
 - all
 
 Pass one or more types in `cvdVariants`; the palette is simulated (Brettel-style) for each type and emitted as `config.variants[type]` (e.g. `config.variants.deuteranopia`), with the same structure as `modes` (light/dark ramps and semantic tokens).
+
+---
+
+## Theme mapping utility
+
+Use the mapper when you need `generatePalette()` output shaped to your own contract, but do not want to fork or replace frosting's base `PaletteConfig`.
+
+### TypeScript API
+
+```ts
+import {
+  generatePalette,
+  mapPaletteToTheme,
+  type ThemeMappingConfig,
+} from "frosting";
+
+type AppTheme = {
+  light: {
+    surface: { page: string };
+    text: { primary: string };
+  };
+  dark: {
+    surface: { page: string };
+    text: { primary: string };
+  };
+};
+
+const palette = generatePalette({ brand: ["#7C3AED"] });
+
+const config: ThemeMappingConfig<AppTheme> = {
+  template: {
+    light: { surface: { page: "" }, text: { primary: "" } },
+    dark: { surface: { page: "" }, text: { primary: "" } },
+  },
+  mappings: {
+    "light.text.primary": "light.foreground",
+    "dark.text.primary": "dark.foreground",
+  },
+  fuzzy: {
+    derivedAliases: true,
+  },
+};
+
+const { theme, diagnostics } = mapPaletteToTheme(palette, config);
+
+console.log(theme);
+console.log(diagnostics.unresolved);
+```
+
+### Storefront-style TypeScript example
+
+```ts
+import {
+  generatePalette,
+  mapPaletteToTheme,
+  type ThemeMappingConfig,
+} from "frosting";
+
+type StorefrontThemeRamp = {
+  50?: string;
+  100?: string;
+  200?: string;
+  300?: string;
+  400?: string;
+  500?: string;
+  600?: string;
+  700?: string;
+  800?: string;
+  900?: string;
+};
+
+type StorefrontThemeMode = {
+  brand?: StorefrontThemeRamp;
+  accent?: { primary?: string; secondary?: string; contrast?: string };
+  text?: { primary?: string; muted?: string; inverse?: string; link?: string };
+  surface?: {
+    page?: string;
+    card?: string;
+    subtle?: string;
+    elevated?: string;
+    inverse?: string;
+  };
+  border?: { default?: string; muted?: string; strong?: string; inverse?: string };
+  status?: { success?: string; warning?: string; error?: string; info?: string };
+};
+
+type StorefrontTheme = {
+  version: 1;
+  light: StorefrontThemeMode;
+  dark?: StorefrontThemeMode;
+};
+
+const palette = generatePalette({ brand: ["#7C3AED"] });
+
+const config: ThemeMappingConfig<StorefrontTheme> = {
+  template: {
+    version: 1,
+    light: {
+      brand: { 50: "", 100: "", 200: "", 300: "", 400: "", 500: "", 600: "", 700: "", 800: "", 900: "" },
+      accent: { primary: "", secondary: "", contrast: "" },
+      text: { primary: "", muted: "", inverse: "", link: "" },
+      surface: { page: "", card: "", subtle: "", elevated: "", inverse: "" },
+      border: { default: "", muted: "", strong: "", inverse: "" },
+      status: { success: "", warning: "", error: "", info: "" },
+    },
+    dark: {
+      brand: { 50: "", 100: "", 200: "", 300: "", 400: "", 500: "", 600: "", 700: "", 800: "", 900: "" },
+      accent: { primary: "", secondary: "", contrast: "" },
+      text: { primary: "", muted: "", inverse: "", link: "" },
+      surface: { page: "", card: "", subtle: "", elevated: "", inverse: "" },
+      border: { default: "", muted: "", strong: "", inverse: "" },
+      status: { success: "", warning: "", error: "", info: "" },
+    },
+  },
+  mappings: {
+    "light.brand.50": "light.brand1.50",
+    "light.brand.100": "light.brand1.100",
+    "light.brand.200": "light.brand1.200",
+    "light.brand.300": "light.brand1.300",
+    "light.brand.400": "light.brand1.400",
+    "light.brand.500": "light.brand1.500",
+    "light.brand.600": "light.brand1.600",
+    "light.brand.700": "light.brand1.700",
+    "light.brand.800": "light.brand1.800",
+    "light.brand.900": "light.brand1.900",
+    "dark.brand.50": "dark.brand1.50",
+    "dark.brand.100": "dark.brand1.100",
+    "dark.brand.200": "dark.brand1.200",
+    "dark.brand.300": "dark.brand1.300",
+    "dark.brand.400": "dark.brand1.400",
+    "dark.brand.500": "dark.brand1.500",
+    "dark.brand.600": "dark.brand1.600",
+    "dark.brand.700": "dark.brand1.700",
+    "dark.brand.800": "dark.brand1.800",
+    "dark.brand.900": "dark.brand1.900",
+  },
+  fuzzy: {
+    derivedAliases: true,
+  },
+  requiredPaths: ["light.surface.page", "dark.surface.page"],
+};
+
+const { theme, diagnostics } = mapPaletteToTheme(palette, config);
+if (diagnostics.missingRequired.length) {
+  throw new Error(`Missing required paths: ${diagnostics.missingRequired.join(", ")}`);
+}
+```
+
+### Mapper configuration guidance
+
+- `template`: nested output shape to fill; fields with `""`, `null`, or `undefined` are treated as mapping placeholders.
+- `mappings`: explicit `targetPath -> sourceToken` overrides for ambiguous or custom behavior.
+- `fuzzy.derivedAliases`: `true` enables friendly aliases like `light.surface.page` and `dark.text.muted`; `false` restricts matching to base semantic/ramp tokens.
+- `requiredPaths`: target paths that must resolve; unresolved required paths are returned in `diagnostics.missingRequired`.
+- `diagnostics`: inspect `resolved`, `unresolved`, and `ambiguous` entries to tune your mapping config.
+
+### Common source tokens for `mappings`
+
+Use these source token names in your `mappings` object.
+
+| Category | Examples |
+| --- | --- |
+| Semantic tokens | `light.background`, `light.foreground`, `light.primary`, `light.secondary`, `light.accent`, `dark.background`, `dark.foreground`, `dark.primary` |
+| Ramp steps | `light.brand1.500`, `light.brand2.500`, `light.neutral.100`, `light.neutral.900`, `dark.brand1.500`, `dark.neutral.800` |
+| Alias tokens (`fuzzy.derivedAliases: true`) | `light.surface.page`, `light.surface.card`, `light.text.primary`, `light.text.muted`, `light.text.link`, `light.accent.primary`, `light.status.warning`, `dark.surface.page`, `dark.text.primary`, `dark.status.error` |
+| Literal color override | `#ff0000` (you can map a target path directly to a fixed hex value) |
+
+If you are unsure what to map first, start with semantic tokens (`light.background`, `light.foreground`, `light.primary`) and add explicit ramp mappings only where you need exact scale control.
+
+### CLI mapping
+
+Use `map:path` (or `m:path`) to apply the same mapper config file in the CLI.
+
+```bash
+frosting config:input.json map:theme-map.json > theme.json
+```
+
+Mapper config example (`theme-map.json`):
+
+```ts
+{
+  "template": {
+    "light": {
+      "surface": { "page": "" }
+    }
+  },
+  "mappings": {
+    "light.surface.page": "light.background"
+  },
+  "fuzzy": {
+    "derivedAliases": true
+  },
+  "requiredPaths": ["light.surface.page"],
+  "failOnUnresolved": true
+}
+```
+
+When `failOnUnresolved` is `true`, the CLI exits with an error if any unresolved mapped path remains.
+
+Existing Tailwind, Chakra, CLI defaults, and UI-control integrations continue to use the regular `PaletteConfig` shape unless you explicitly map output.
 
 ---
 

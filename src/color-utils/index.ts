@@ -94,8 +94,10 @@ export function generatePalette(
   const light = buildMode("light");
   const dark = buildMode("dark");
 
-  const variants: Record<string, PaletteVariant> | undefined =
-    options?.cvdVariants?.length ? {} : undefined;
+  const variants: Record<string, PaletteVariant> | undefined = options
+    ?.cvdVariants?.length
+    ? {}
+    : undefined;
 
   if (variants) {
     for (const type of options!.cvdVariants!) {
@@ -128,5 +130,6 @@ export function generatePalette(
 }
 
 export * from "./types";
+export * from "./theme-mapper";
 export { STEPS } from "./ramp";
 export { assertBrandArray } from "./validate";

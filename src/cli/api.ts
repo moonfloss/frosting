@@ -7,6 +7,7 @@ import { stdin as input, stderr as stderrOut } from "node:process";
 
 import {
   generatePalette,
+  mapPaletteToTheme,
   STEPS,
   assertBrandArray,
   type PaletteInput,
@@ -21,6 +22,8 @@ import {
   type Ramp,
   type SemanticTokens,
   type CvdType,
+  type ThemeMappingConfig,
+  type ThemeMappingTemplate,
 } from "../index";
 import { generateCssVars } from "../tailwind";
 
@@ -254,6 +257,7 @@ frosting v${PKG_VERSION}
 
   wizard / w       Use prompt/answer wizard (if not present, read config from config:filepath).
   config: / c:     Read config from filepath (when not using wizard).
+  map: / m:        Read theme-mapper config JSON from filepath and output mapped JSON instead of PaletteConfig.
   exclude: / e:    Comma-separated variants to exclude: light, dark, cvd, or cvd:name1,name2.
   only: / o:       Comma-separated variants to include (opposite of exclude).
   css: / css       Write CSS custom properties to filepath (Tailwind theming vars).
@@ -279,6 +283,7 @@ Examples:
   frosting c:input.json no-rolloff
   frosting c:input.json css:palette-vars.css
   frosting c:input.json css palette-vars.css > palette.json
+  frosting c:input.json map:theme-map.json > theme.json
 `.trim(),
   );
 }
@@ -287,6 +292,7 @@ let argv: string[] = [];
 
 const COLON_ALIASES: Record<string, string[]> = {
   config: ["c"],
+  map: ["m"],
   only: ["o"],
   exclude: ["e"],
   css: [],
@@ -327,6 +333,8 @@ const RESERVED_ARGS = new Set(["wizard", "w", "no-tint", "no-rolloff", "css"]);
 const COLON_PREFIXES = [
   "config:",
   "c:",
+  "map:",
+  "m:",
   "exclude:",
   "e:",
   "only:",
@@ -367,6 +375,77 @@ function getCssPath(): string | undefined {
     if (next && isPathLikeArg(next)) return next;
   }
   return undefined;
+}
+
+function getMapPath(): string | undefined {
+  return getColonArg("map");
+}
+
+interface CliThemeMappingConfig extends ThemeMappingConfig<ThemeMappingTemplate> {
+  failOnUnresolved?: boolean;
+}
+
+function isThemeMappingTemplate(value: unknown): value is ThemeMappingTemplate {
+  return value != null && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseThemeMappingConfig(raw: string): CliThemeMappingConfig {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    die(`Invalid JSON: ${message}`);
+  }
+  if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    die(`Mapping config must be a JSON object.`);
+  }
+  const obj = parsed as Record<string, unknown>;
+  if (!("template" in obj) || !isThemeMappingTemplate(obj.template)) {
+    die(`Mapping config must include an object "template" field.`);
+  }
+  if (
+    "mappings" in obj &&
+    (obj.mappings == null ||
+      typeof obj.mappings !== "object" ||
+      Array.isArray(obj.mappings))
+  ) {
+    die(
+      `Mapping config "mappings" must be an object of targetPath -> sourceToken.`,
+    );
+  }
+  if ("requiredPaths" in obj && !Array.isArray(obj.requiredPaths)) {
+    die(`Mapping config "requiredPaths" must be an array of target paths.`);
+  }
+  if ("failOnUnresolved" in obj && typeof obj.failOnUnresolved !== "boolean") {
+    die(`Mapping config "failOnUnresolved" must be a boolean.`);
+  }
+  return obj as unknown as CliThemeMappingConfig;
+}
+
+async function mapPaletteIfRequested(
+  palette: PaletteConfig,
+  mapPath?: string,
+): Promise<unknown> {
+  if (!mapPath) return palette;
+  const abs = path.resolve(process.cwd(), mapPath);
+  const raw = await fsPromises.readFile(abs, "utf8");
+  const mappingConfig = parseThemeMappingConfig(raw);
+  const { theme, diagnostics } = mapPaletteToTheme(palette, mappingConfig);
+
+  if (mappingConfig.failOnUnresolved && diagnostics.unresolved.length > 0) {
+    const unresolved = diagnostics.unresolved
+      .map((entry) => `${entry.targetPath}: ${entry.reason}`)
+      .join("; ");
+    die(`Theme mapping has unresolved paths: ${unresolved}`);
+  }
+  if (diagnostics.missingRequired.length > 0) {
+    die(
+      `Theme mapping missing required paths: ${diagnostics.missingRequired.join(", ")}`,
+    );
+  }
+
+  return theme;
 }
 
 /** Variants to exclude or include (only wins if both set). */
@@ -695,6 +774,7 @@ export async function runWizard(configWritePath?: string, cssPath?: string) {
 
   let palette = generatePalette(paletteInput, options);
   palette = applyVariantFilter(palette, filter);
+  const mapPath = getMapPath();
 
   if (cssPath) {
     writeFile(cssPath, generateCssVars(palette) + "\n");
@@ -710,7 +790,8 @@ export async function runWizard(configWritePath?: string, cssPath?: string) {
     }
   }
   console.error(`\n--- Generated palette (full JSON) ---\n`);
-  process.stdout.write(JSON.stringify(palette, null, 2) + "\n");
+  const output = await mapPaletteIfRequested(palette, mapPath);
+  process.stdout.write(JSON.stringify(output, null, 2) + "\n");
 
   if (configWritePath) {
     writeFile(configWritePath, inputJson + "\n");
@@ -774,13 +855,15 @@ export async function runFromFile(
 
   let palette = generatePalette(paletteInput, options);
   palette = applyVariantFilter(palette, filter);
+  const mapPath = getMapPath();
 
   if (cssPath) {
     writeFile(cssPath, generateCssVars(palette) + "\n");
     console.error(`✅ wrote CSS vars to ${cssPath}`);
   }
 
-  process.stdout.write(JSON.stringify(palette, null, 2) + "\n");
+  const output = await mapPaletteIfRequested(palette, mapPath);
+  process.stdout.write(JSON.stringify(output, null, 2) + "\n");
 }
 
 export async function main(args = process.argv.slice(2)) {

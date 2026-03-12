@@ -1,0 +1,11 @@
+{
+  "template": {
+    "light": {
+      "custom": {
+        "mustSet": ""
+      }
+    }
+  },
+  "requiredPaths": ["light.custom.mustSet"],
+  "failOnUnresolved": false
+}

@@ -1,0 +1,8 @@
+{
+  "root": [
+    "./vite.config.ts",
+    "./App.tsx",
+    "./main.tsx"
+  ],
+  "version": "5.9.3"
+}

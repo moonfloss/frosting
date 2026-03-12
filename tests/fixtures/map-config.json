@@ -1,0 +1,24 @@
+{
+  "template": {
+    "version": 1,
+    "light": {
+      "surface": {
+        "page": ""
+      },
+      "text": {
+        "primary": ""
+      },
+      "status": {
+        "warning": ""
+      }
+    }
+  },
+  "mappings": {
+    "light.text.primary": "light.foreground"
+  },
+  "fuzzy": {
+    "derivedAliases": true
+  },
+  "requiredPaths": ["light.surface.page", "light.status.warning"],
+  "failOnUnresolved": true
+}

@@ -79,9 +79,7 @@ describe("CLI", () => {
     });
 
     it("fails with nonexistent file", async () => {
-      await expect(
-        run(["config:nonexistent-file.json"]),
-      ).rejects.toThrow();
+      await expect(run(["config:nonexistent-file.json"])).rejects.toThrow();
     });
 
     it("defaults brandTint and neonChromaRolloff to true", async () => {
@@ -109,6 +107,54 @@ describe("CLI", () => {
       const palette = JSON.parse(stdout);
       expect(palette.inputs.optionsUsed.brandTint).toBe(true);
       expect(palette.inputs.optionsUsed.neonChromaRolloff).toBe(false);
+    });
+
+    it("map: outputs mapped theme JSON when mapping config is provided", async () => {
+      const { stdout } = await run([
+        `config:${FIXTURES}/brand-input.json`,
+        `map:${FIXTURES}/map-config.json`,
+      ]);
+      const mapped = JSON.parse(stdout);
+      expect(mapped.version).toBe(1);
+      expect(mapped.light.surface.page).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(mapped.light.status.warning).toBe("#ed6c02");
+      expect(mapped).not.toHaveProperty("modes");
+    });
+
+    it("fails when map config is invalid", async () => {
+      await expect(
+        run([
+          `config:${FIXTURES}/brand-input.json`,
+          `map:${FIXTURES}/map-config-invalid.json`,
+        ]),
+      ).rejects.toThrow(/template/i);
+    });
+
+    it("fails with friendly error when map config JSON is malformed", async () => {
+      await expect(
+        run([
+          `config:${FIXTURES}/brand-input.json`,
+          `map:${FIXTURES}/map-config-malformed.json`,
+        ]),
+      ).rejects.toThrow(/Invalid JSON/i);
+    });
+
+    it("fails when mappings is an array", async () => {
+      await expect(
+        run([
+          `config:${FIXTURES}/brand-input.json`,
+          `map:${FIXTURES}/map-config-mappings-array.json`,
+        ]),
+      ).rejects.toThrow(/mappings.*object/i);
+    });
+
+    it("fails when required mapped paths are unresolved", async () => {
+      await expect(
+        run([
+          `config:${FIXTURES}/brand-input.json`,
+          `map:${FIXTURES}/map-config-missing-required.json`,
+        ]),
+      ).rejects.toThrow(/missing required paths/i);
     });
   });
 
