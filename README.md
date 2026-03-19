@@ -97,6 +97,32 @@ frosting config:input.json map:theme-map.json > theme.json
 
 ---
 
+### Custom theme shape (e.g. StorefrontTheme)
+
+To get output that matches your own types (e.g. `StorefrontThemeRamp` / `StorefrontThemeMode`), use the **map** option with a theme-mapper config:
+
+1. **Palette config** — Your usual frosting input (wizard or `config:path`).
+2. **Mapper config** — A JSON file with:
+   - **`template`** — Object shape you want. Use `null` (or `""`) for every leaf you want filled from the palette; nested structure is preserved.
+   - **`mappings`** — Optional path overrides: `"target.path": "source.path"`. Source paths are like `light.ramps.brand1.500`, `light.semantic.background`, or built-in aliases such as `light.surface.page`, `light.text.primary`, `light.accent.primary`, `light.status.warning`, etc.
+   - **`fuzzy`** — Optional `{ "enabled": true, "derivedAliases": true }` so unmapped leaves can be filled by name matching (e.g. `light.surface.page` → alias).
+
+**Example: StorefrontTheme-style output (light/dark, brand ramp 50–900, accent, text, surface, border, status, decorative)**
+
+```bash
+frosting config:palette-config.json map:docs/storefront-theme-map.example.json > storefront-theme.json
+```
+
+Or with the wizard:
+
+```bash
+frosting wizard map:docs/storefront-theme-map.example.json > storefront-theme.json
+```
+
+The example mapper config is at `docs/storefront-theme-map.example.json`. It defines a template matching `StorefrontThemeMode` (with optional `brand`, `accent`, `text`, `surface`, `border`, `status`, `decorative`) and maps frosting’s ramps and semantic/alias tokens into it. You can copy and edit that file to add or change mappings (e.g. `surface.elevated`, `border.muted`) or to point to different source paths.
+
+---
+
 ## Quick start
 
 ```ts

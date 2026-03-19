@@ -1,0 +1,47 @@
+{
+  "template": {
+    "light": {
+      "brand": { "50": null, "100": null, "200": null, "300": null, "400": null, "500": null, "600": null, "700": null, "800": null, "900": null },
+      "accent": { "primary": null, "secondary": null, "contrast": null },
+      "text": { "primary": null, "muted": null, "inverse": null, "link": null },
+      "surface": { "page": null, "card": null, "subtle": null, "elevated": null, "inverse": null },
+      "border": { "default": null, "muted": null, "strong": null, "inverse": null },
+      "status": { "success": null, "warning": null, "error": null, "info": null },
+      "decorative": { "positive": null, "negative": null, "highlight": null, "neutral": null }
+    },
+    "dark": {
+      "brand": { "50": null, "100": null, "200": null, "300": null, "400": null, "500": null, "600": null, "700": null, "800": null, "900": null },
+      "accent": { "primary": null, "secondary": null, "contrast": null },
+      "text": { "primary": null, "muted": null, "inverse": null, "link": null },
+      "surface": { "page": null, "card": null, "subtle": null, "elevated": null, "inverse": null },
+      "border": { "default": null, "muted": null, "strong": null, "inverse": null },
+      "status": { "success": null, "warning": null, "error": null, "info": null },
+      "decorative": { "positive": null, "negative": null, "highlight": null, "neutral": null }
+    }
+  },
+  "mappings": {
+    "light.brand.50": "light.ramps.brand1.50",
+    "light.brand.100": "light.ramps.brand1.100",
+    "light.brand.200": "light.ramps.brand1.200",
+    "light.brand.300": "light.ramps.brand1.300",
+    "light.brand.400": "light.ramps.brand1.400",
+    "light.brand.500": "light.ramps.brand1.500",
+    "light.brand.600": "light.ramps.brand1.600",
+    "light.brand.700": "light.ramps.brand1.700",
+    "light.brand.800": "light.ramps.brand1.800",
+    "light.brand.900": "light.ramps.brand1.900",
+    "dark.brand.50": "dark.ramps.brand1.50",
+    "dark.brand.100": "dark.ramps.brand1.100",
+    "dark.brand.200": "dark.ramps.brand1.200",
+    "dark.brand.300": "dark.ramps.brand1.300",
+    "dark.brand.400": "dark.ramps.brand1.400",
+    "dark.brand.500": "dark.ramps.brand1.500",
+    "dark.brand.600": "dark.ramps.brand1.600",
+    "dark.brand.700": "dark.ramps.brand1.700",
+    "dark.brand.800": "dark.ramps.brand1.800",
+    "dark.brand.900": "dark.ramps.brand1.900",
+    "light.border.default": "light.semantic.border",
+    "dark.border.default": "dark.semantic.border"
+  },
+  "fuzzy": { "enabled": true, "derivedAliases": true }
+}
