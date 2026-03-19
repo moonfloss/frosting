@@ -27,7 +27,7 @@
 ## Install
 
 ```bash
-npm install frosting
+npm install @moonfloss/frosting
 ```
 
 ---
@@ -126,7 +126,7 @@ The example mapper config is at `docs/storefront-theme-map.example.json`. It def
 ## Quick start
 
 ```ts
-import { generatePalette } from "frosting";
+import { generatePalette } from "@moonfloss/frosting";
 
 const palette = generatePalette({
   brand: ["#7C3AED", "#F59E0B"],
@@ -147,12 +147,12 @@ You now have:
 
 ## UI control
 
-The `frosting/ui-control` entrypoint includes the existing `ConfigForm` convenience component plus a lower-level `PaletteConfigForm` wrapper for custom UIs.
+The `@moonfloss/frosting/ui-control` entrypoint includes the existing `ConfigForm` convenience component plus a lower-level `PaletteConfigForm` wrapper for custom UIs.
 
 ### Default form
 
 ```tsx
-import { ConfigForm } from "frosting/ui-control";
+import { ConfigForm } from "@moonfloss/frosting/ui-control";
 
 export function PaletteBuilder() {
   return <ConfigForm />;
@@ -173,7 +173,8 @@ export function PaletteBuilder() {
 - `paletteInput` - normalized `PaletteInput | null`
 - `paletteOptions` - normalized `PaletteOptions`
 - `palette` - live generated palette when the current values are valid
-- `isValid` - whether the current values can be converted into a palette input
+- `paletteError` - error produced while generating the palette (if any)
+- `isValid` - whether current values are valid and generate a palette without errors
 - `handleSubmit` and `submit()` - submit helpers for custom forms
 
 This makes it easy to:
@@ -184,7 +185,7 @@ This makes it easy to:
 - plug the normalized `input` and `options` into your own workflow
 
 ```tsx
-import { PaletteConfigForm } from "frosting/ui-control";
+import { PaletteConfigForm } from "@moonfloss/frosting/ui-control";
 
 export function CustomPaletteBuilder() {
   return (
@@ -222,7 +223,7 @@ export function CustomPaletteBuilder() {
 You can render your own controls while still using frosting's normalization and preview logic:
 
 ```tsx
-import { PaletteConfigForm, SCHEME_KINDS } from "frosting/ui-control";
+import { PaletteConfigForm, SCHEME_KINDS } from "@moonfloss/frosting/ui-control";
 
 export function CustomPaletteBuilder() {
   return (
@@ -313,7 +314,7 @@ export function CustomPaletteBuilder() {
 
 ### Helper exports
 
-If you want to build your own state layer instead of using the wrapper, `frosting/ui-control` also exports:
+If you want to build your own state layer instead of using the wrapper, `@moonfloss/frosting/ui-control` also exports:
 
 - `DEFAULT_PALETTE_CONFIG_FORM_VALUES`
 - `mergePaletteConfigFormValues()`
@@ -418,7 +419,7 @@ import {
   generatePalette,
   mapPaletteToTheme,
   type ThemeMappingConfig,
-} from "frosting";
+} from "@moonfloss/frosting";
 
 type AppTheme = {
   light: {
@@ -460,7 +461,7 @@ import {
   generatePalette,
   mapPaletteToTheme,
   type ThemeMappingConfig,
-} from "frosting";
+} from "@moonfloss/frosting";
 
 type StorefrontThemeRamp = {
   50?: string;
@@ -609,13 +610,13 @@ Existing Tailwind, Chakra, CLI defaults, and UI-control integrations continue to
 
 ## Tailwind
 
-The **frosting/tailwind** export provides Tailwind-themed output from a `PaletteConfig`: CSS custom properties, a theme config object, and a Tailwind plugin. All tokens use prefixed names: `{mode}-{variant}-{token}` (e.g. `light-default-background`, `dark-protanopia-primary`).
+The **@moonfloss/frosting/tailwind** export provides Tailwind-themed output from a `PaletteConfig`: CSS custom properties, a theme config object, and a Tailwind plugin. All tokens use prefixed names: `{mode}-{variant}-{token}` (e.g. `light-default-background`, `dark-protanopia-primary`).
 
 ### CSS custom properties
 
 ```ts
-import { generatePalette } from "frosting";
-import { generateCssVars } from "frosting/tailwind";
+import { generatePalette } from "@moonfloss/frosting";
+import { generateCssVars } from "@moonfloss/frosting/tailwind";
 
 const palette = generatePalette({ brand: ["#7C3AED"] });
 const css = generateCssVars(palette);
@@ -625,7 +626,7 @@ const css = generateCssVars(palette);
 ### Tailwind theme config
 
 ```ts
-import { generateTailwindTheme } from "frosting/tailwind";
+import { generateTailwindTheme } from "@moonfloss/frosting/tailwind";
 
 const theme = generateTailwindTheme(palette);
 // theme.extend in tailwind.config:
@@ -637,7 +638,7 @@ export default {
 ### Tailwind plugin (CSS vars + theme in one go)
 
 ```ts
-import { frostingPlugin } from "frosting/tailwind";
+import { frostingPlugin } from "@moonfloss/frosting/tailwind";
 
 export default {
   plugins: [frostingPlugin(palette)],
@@ -650,13 +651,13 @@ Then use utilities like `bg-light-default-background`, `text-dark-default-primar
 
 ## Chakra UI
 
-The **frosting/chakra** export generates a Chakra UI v2–compatible theme from a `PaletteConfig`: color scales (brand1, brand2, neutral, etc.) and semantic tokens with built-in light/dark mode. Use it with `extendTheme` and `<ChakraProvider>`.
+The **@moonfloss/frosting/chakra** export generates a Chakra UI v2–compatible theme from a `PaletteConfig`: color scales (brand1, brand2, neutral, etc.) and semantic tokens with built-in light/dark mode. Use it with `extendTheme` and `<ChakraProvider>`.
 
 ### Basic setup
 
 ```ts
-import { generatePalette } from "frosting";
-import { generateChakraTheme } from "frosting/chakra";
+import { generatePalette } from "@moonfloss/frosting";
+import { generateChakraTheme } from "@moonfloss/frosting/chakra";
 import { extendTheme, ChakraProvider } from "@chakra-ui/react";
 
 const palette = generatePalette({ brand: ["#7C3AED", "#F59E0B"] });
@@ -702,7 +703,7 @@ const cvdTheme = extendTheme(generateChakraTheme(palette, { variant: "protanopia
 ### Color scheme helpers
 
 ```ts
-import { getChakraColorSchemes } from "frosting/chakra";
+import { getChakraColorSchemes } from "@moonfloss/frosting/chakra";
 
 const schemes = getChakraColorSchemes(palette);
 // { brand1: "brand1", brand2: "brand2", neutral: "neutral" }

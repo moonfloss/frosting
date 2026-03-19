@@ -91,6 +91,24 @@ export interface SemanticTokens {
   "accent-foreground": HexColor;
 }
 
+export const SEMANTIC_KEYS = [
+  "background",
+  "foreground",
+  "card",
+  "card-foreground",
+  "muted",
+  "muted-foreground",
+  "border",
+  "input",
+  "ring",
+  "primary",
+  "primary-foreground",
+  "secondary",
+  "secondary-foreground",
+  "accent",
+  "accent-foreground",
+] as const satisfies readonly (keyof SemanticTokens)[];
+
 export interface ModePalette {
   ramps: {
     brand1: Ramp;
@@ -109,6 +127,14 @@ export interface ModePalette {
     gamutClampsApplied: number;
   };
 }
+
+export const RAMP_NAMES = [
+  "brand1",
+  "brand2",
+  "brand3",
+  "brand4",
+  "neutral",
+] as const satisfies readonly (keyof ModePalette["ramps"])[];
 
 export interface PaletteVariant {
   kind: "cvd";

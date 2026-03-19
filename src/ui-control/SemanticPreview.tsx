@@ -1,22 +1,5 @@
 import type { SemanticTokens } from "../index";
-
-const SEMANTIC_KEYS: (keyof SemanticTokens)[] = [
-  "background",
-  "foreground",
-  "card",
-  "card-foreground",
-  "muted",
-  "muted-foreground",
-  "border",
-  "input",
-  "ring",
-  "primary",
-  "primary-foreground",
-  "secondary",
-  "secondary-foreground",
-  "accent",
-  "accent-foreground",
-];
+import { SEMANTIC_KEYS } from "../index";
 
 export interface SemanticPreviewProps {
   semantic: SemanticTokens;

@@ -1,25 +1,5 @@
 import type { PaletteConfig, SemanticTokens } from "../index";
-import { STEPS } from "../index";
-
-const SEMANTIC_KEYS: (keyof SemanticTokens)[] = [
-  "background",
-  "foreground",
-  "card",
-  "card-foreground",
-  "muted",
-  "muted-foreground",
-  "border",
-  "input",
-  "ring",
-  "primary",
-  "primary-foreground",
-  "secondary",
-  "secondary-foreground",
-  "accent",
-  "accent-foreground",
-];
-
-const RAMP_NAMES = ["brand1", "brand2", "brand3", "brand4", "neutral"] as const;
+import { RAMP_NAMES, SEMANTIC_KEYS, STEPS } from "../index";
 
 type Mode = "light" | "dark";
 

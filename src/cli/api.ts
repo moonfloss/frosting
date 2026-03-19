@@ -8,6 +8,7 @@ import { stdin as input, stderr as stderrOut } from "node:process";
 import {
   generatePalette,
   mapPaletteToTheme,
+  SEMANTIC_KEYS,
   STEPS,
   assertBrandArray,
   type PaletteInput,
@@ -25,7 +26,7 @@ import {
   type ThemeMappingConfig,
   type ThemeMappingTemplate,
 } from "../index";
-import { generateCssVars } from "../tailwind";
+import { generateCssVars } from "../tailwind/css";
 
 declare const __PKG_VERSION__: string;
 
@@ -181,24 +182,6 @@ function printRamp(title: string, ramp: Ramp, toStderr = false) {
     out(`${String(step).padStart(4)} ${swatch(hex)} ${hex}`);
   }
 }
-
-const SEMANTIC_KEYS: (keyof SemanticTokens)[] = [
-  "background",
-  "foreground",
-  "card",
-  "card-foreground",
-  "muted",
-  "muted-foreground",
-  "border",
-  "input",
-  "ring",
-  "primary",
-  "primary-foreground",
-  "secondary",
-  "secondary-foreground",
-  "accent",
-  "accent-foreground",
-];
 
 function printSemantic(
   title: string,
@@ -363,7 +346,7 @@ function hasArg(value: string): boolean {
 }
 
 function hasFlag(name: string): boolean {
-  return process.argv.includes(`--${name}`);
+  return argv.includes(`--${name}`);
 }
 
 function getCssPath(): string | undefined {

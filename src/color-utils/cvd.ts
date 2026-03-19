@@ -5,9 +5,16 @@
  * or tritanopia.
  */
 
-import { HexColor, CvdType, ModePalette, Ramp, SemanticTokens } from "./types";
+import {
+  HexColor,
+  CvdType,
+  ModePalette,
+  Ramp,
+  SEMANTIC_KEYS,
+  SemanticTokens,
+} from "./types";
 import { hexToRgb, rgbToHex, srgbToLinear, linearToSrgb } from "./okcolor";
-import { STEPS } from "./ramp";
+import { STEPS, toRamp } from "./ramp";
 
 // Brettel params: separation plane normal + two 3×3 matrices (linear RGB → simulated linear RGB).
 // Which matrix is used depends on which side of the separation plane the color lies on.
@@ -84,10 +91,6 @@ export function simulateCvd(hex: HexColor, type: CvdType): HexColor {
   });
 }
 
-function toRamp(partial: Partial<Ramp>): Ramp {
-  return partial as Ramp;
-}
-
 function mapRamp(ramp: Ramp, type: CvdType): Ramp {
   const out: Partial<Ramp> = {};
   for (const step of STEPS) {
@@ -95,24 +98,6 @@ function mapRamp(ramp: Ramp, type: CvdType): Ramp {
   }
   return toRamp(out);
 }
-
-const SEMANTIC_KEYS: (keyof SemanticTokens)[] = [
-  "background",
-  "foreground",
-  "card",
-  "card-foreground",
-  "muted",
-  "muted-foreground",
-  "border",
-  "input",
-  "ring",
-  "primary",
-  "primary-foreground",
-  "secondary",
-  "secondary-foreground",
-  "accent",
-  "accent-foreground",
-];
 
 function toSemanticTokens(partial: Partial<SemanticTokens>): SemanticTokens {
   return partial as SemanticTokens;

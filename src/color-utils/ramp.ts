@@ -13,7 +13,12 @@ export const STEPS: Step[] = [
 ];
 
 /** Build a Ramp from a partial that has every step filled (by construction). */
-function toRamp(partial: Partial<Ramp>): Ramp {
+export function toRamp(partial: Partial<Ramp>): Ramp {
+  for (const step of STEPS) {
+    if (partial[step] == null) {
+      throw new Error(`Missing ramp step: ${step}`);
+    }
+  }
   return partial as Ramp;
 }
 

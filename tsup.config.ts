@@ -32,7 +32,7 @@ export default defineConfig([
     entry: [...libraryEntries, "src/cli/index.ts"],
     format: ["esm"],
     dts: { entry: dtsEntry },
-    splitting: false,
+    splitting: true,
     sourcemap,
     clean: true,
     outDir: "dist",
@@ -47,7 +47,6 @@ export default defineConfig([
   {
     entry: libraryEntries,
     format: ["cjs"],
-    dts: { entry: dtsEntry },
     splitting: false,
     sourcemap,
     outDir: "dist",

@@ -77,6 +77,7 @@ export interface PaletteConfigFormRenderProps {
   paletteInput: PaletteInput | null;
   paletteOptions: PaletteOptions;
   palette: PaletteConfig | null;
+  paletteError: Error | null;
   isValid: boolean;
   submit: () => void;
   handleSubmit: FormEventHandler<HTMLFormElement>;
@@ -158,12 +159,21 @@ export function PaletteConfigForm({
     () => valuesToPaletteOptions(values),
     [values],
   );
-  const palette = useMemo(() => {
-    if (!paletteInput) return null;
+  const { palette, paletteError } = useMemo(() => {
+    if (!paletteInput) {
+      return { palette: null, paletteError: null };
+    }
     try {
-      return generatePalette(paletteInput, paletteOptions);
-    } catch {
-      return null;
+      return {
+        palette: generatePalette(paletteInput, paletteOptions),
+        paletteError: null,
+      };
+    } catch (error) {
+      return {
+        palette: null,
+        paletteError:
+          error instanceof Error ? error : new Error(String(error)),
+      };
     }
   }, [paletteInput, paletteOptions]);
 
@@ -266,7 +276,8 @@ export function PaletteConfigForm({
     paletteInput,
     paletteOptions,
     palette,
-    isValid: paletteInput != null,
+    paletteError,
+    isValid: paletteInput != null && paletteError == null,
     submit,
     handleSubmit,
   };
