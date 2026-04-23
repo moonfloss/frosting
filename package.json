@@ -1,6 +1,6 @@
 {
   "name": "@moonfloss/frosting",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generate structured, deterministic color palettes from a small set of inputs. Ramps, semantic tokens, and optional palette variants.",
   "type": "module",
   "main": "./dist/index.cjs",
