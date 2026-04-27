@@ -1,3 +1,7 @@
+import type { EasingOption } from "./easing";
+
+export type { EasingOption } from "./easing";
+
 export type HexColor = `#${string}`;
 
 export type Step =
@@ -63,6 +67,10 @@ export type PaletteInput =
 export interface PaletteOptions {
   brandTint?: boolean; // default true
   neonChromaRolloff?: boolean; // default true
+  /** Scales L offsets from the 500 step (1 = current behavior with linear easing). */
+  stepDepth?: number; // default 1
+  /** Easing on ramp legs (50–500 and 500–950); "linear" = no warp. */
+  easing?: EasingOption; // default "linear"
   cvdVariants?: CvdType[]; // protanopia, deuteranopia, tritanopia — simulated palettes in config.variants
   version?: string; // user-controlled palette version, defaults to "1.0.0"
 }
@@ -151,7 +159,10 @@ export interface PaletteConfig {
     background: { light?: HexColor; dark?: HexColor };
     foreground: { light?: HexColor; dark?: HexColor };
     optionsUsed: Required<
-      Pick<PaletteOptions, "brandTint" | "neonChromaRolloff">
+      Pick<
+        PaletteOptions,
+        "brandTint" | "neonChromaRolloff" | "stepDepth" | "easing"
+      >
     >;
     schemeUsed?: {
       light: {

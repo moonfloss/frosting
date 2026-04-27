@@ -1,3 +1,5 @@
+import type { EasingOption } from "./easing";
+import { easingWeightAtT } from "./easing";
 import { HexColor, Ramp, Step } from "./types";
 import {
   hexToOklch,
@@ -89,13 +91,42 @@ function clampToGamutByReducingChroma(
   return { lch: best, clamped: true };
 }
 
+// OKLCH L is defined on roughly (0, 1); keep a small margin for hex round-trip.
+const L_EPS = 1e-4;
+
+function clampOklchLightness(L: number): number {
+  return Math.min(1 - L_EPS, Math.max(L_EPS, L));
+}
+
+/** Normalized index distance 500 → edge: t=1 at 50 or 950, (0,1) between. */
+function legProgressTFrom500(step: Step): number {
+  const i = STEPS.indexOf(step);
+  const i500 = STEPS.indexOf(500);
+  if (i < i500) return (i500 - i) / i500;
+  if (i > i500) {
+    return (i - i500) / (STEPS.length - 1 - i500);
+  }
+  return 0;
+}
+
+export type RampFromAnchorOpts = {
+  neonChromaRolloff: boolean;
+  stepDepth?: number;
+  easing?: EasingOption;
+};
+
 export function generateRampFromAnchor(
   anchor: HexColor,
   mode: "light" | "dark",
-  opts: { neonChromaRolloff: boolean },
+  opts: RampFromAnchorOpts,
 ): { ramp: Ramp; gamutClampsApplied: number } {
+  const stepDepth = opts.stepDepth ?? 1;
+  const easing = opts.easing ?? "linear";
   const base = hexToOklch(anchor);
   const Lmap = mode === "light" ? LIGHT_L : DARK_L;
+  // Center the L ladder on the anchor: same step-to-step deltas as Lmap, but
+  // 400/600/etc. are offset from base.L, not Lmap[500] (rarely equal to the hex).
+  const Lref = Lmap[500];
 
   let gamutClampsApplied = 0;
   const out: Partial<Ramp> = {};
@@ -106,7 +137,15 @@ export function generateRampFromAnchor(
       continue;
     }
 
-    const targetL = Lmap[step];
+    const t = legProgressTFrom500(step);
+    const w = easingWeightAtT(t, easing);
+
+    // Affine shift so neighbors match design-system L gaps from the *actual* 500.
+    // Very light/dark anchors can push L out of (0,1); clamping may compress an end
+    // of the ramp (steps pile at min/max L) but keeps valid colors.
+    const targetL = clampOklchLightness(
+      base.L + (Lmap[step] - Lref) * stepDepth * w,
+    );
     let C = base.C;
 
     if (opts.neonChromaRolloff) {
@@ -125,13 +164,23 @@ export function generateRampFromAnchor(
   return { ramp: toRamp(out), gamutClampsApplied };
 }
 
+export type NeutralRampOpts = {
+  brandTint: boolean;
+  neonChromaRolloff: boolean;
+  stepDepth?: number;
+  easing?: EasingOption;
+};
+
 export function generateNeutralRamp(
   primaryAnchor: HexColor,
   mode: "light" | "dark",
-  opts: { brandTint: boolean; neonChromaRolloff: boolean },
+  opts: NeutralRampOpts,
 ): { ramp: Ramp; gamutClampsApplied: number } {
+  const stepDepth = opts.stepDepth ?? 1;
+  const easing = opts.easing ?? "linear";
   const p = hexToOklch(primaryAnchor);
   const Lmap = mode === "light" ? LIGHT_L : DARK_L;
+  const LrefN = Lmap[500];
 
   // Neutral chroma should be tiny.
   const neutralHue = p.h;
@@ -141,9 +190,14 @@ export function generateNeutralRamp(
   const out: Partial<Ramp> = {};
 
   for (const step of STEPS) {
+    const t = legProgressTFrom500(step);
+    const w = easingWeightAtT(t, easing);
+    const targetL = clampOklchLightness(
+      LrefN + (Lmap[step] - LrefN) * stepDepth * w,
+    );
     // For neutrals, we keep chroma minimal and slightly roll off further at extremes.
     const C = baseC * (opts.neonChromaRolloff ? rolloffFactor(step) : 1);
-    const lch: OKLCH = { L: Lmap[step], C, h: neutralHue };
+    const lch: OKLCH = { L: targetL, C, h: neutralHue };
     const { lch: clamped, clamped: didClamp } =
       clampToGamutByReducingChroma(lch);
     if (didClamp) gamutClampsApplied++;

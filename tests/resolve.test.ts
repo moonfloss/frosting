@@ -5,6 +5,8 @@ import type { BrandArray, PaletteInput } from "../src/index.js";
 const defaultOptions = {
   brandTint: true as const,
   neonChromaRolloff: true as const,
+  stepDepth: 1 as const,
+  easing: "linear" as const,
 };
 
 describe("resolveInputs", () => {

@@ -18,6 +18,8 @@ export function generatePalette(
   const optionsUsed = {
     brandTint: options?.brandTint ?? true,
     neonChromaRolloff: options?.neonChromaRolloff ?? true,
+    stepDepth: options?.stepDepth ?? 1,
+    easing: options?.easing ?? "linear",
   } as const;
 
   const resolved = resolveInputs(input, optionsUsed);
@@ -41,6 +43,8 @@ export function generatePalette(
 
     const r1 = generateRampFromAnchor(anchors[0], mode, {
       neonChromaRolloff: optionsUsed.neonChromaRolloff,
+      stepDepth: optionsUsed.stepDepth,
+      easing: optionsUsed.easing,
     });
     brandRamps.brand1 = r1.ramp;
     gamutClampsApplied += r1.gamutClampsApplied;
@@ -48,6 +52,8 @@ export function generatePalette(
     if (anchors[1]) {
       const r2 = generateRampFromAnchor(anchors[1], mode, {
         neonChromaRolloff: optionsUsed.neonChromaRolloff,
+        stepDepth: optionsUsed.stepDepth,
+        easing: optionsUsed.easing,
       });
       brandRamps.brand2 = r2.ramp;
       gamutClampsApplied += r2.gamutClampsApplied;
@@ -55,6 +61,8 @@ export function generatePalette(
     if (anchors[2]) {
       const r3 = generateRampFromAnchor(anchors[2], mode, {
         neonChromaRolloff: optionsUsed.neonChromaRolloff,
+        stepDepth: optionsUsed.stepDepth,
+        easing: optionsUsed.easing,
       });
       brandRamps.brand3 = r3.ramp;
       gamutClampsApplied += r3.gamutClampsApplied;
@@ -62,6 +70,8 @@ export function generatePalette(
     if (anchors[3]) {
       const r4 = generateRampFromAnchor(anchors[3], mode, {
         neonChromaRolloff: optionsUsed.neonChromaRolloff,
+        stepDepth: optionsUsed.stepDepth,
+        easing: optionsUsed.easing,
       });
       brandRamps.brand4 = r4.ramp;
       gamutClampsApplied += r4.gamutClampsApplied;
@@ -70,6 +80,8 @@ export function generatePalette(
     const neutralGen = generateNeutralRamp(anchors[0], mode, {
       brandTint: optionsUsed.brandTint,
       neonChromaRolloff: optionsUsed.neonChromaRolloff,
+      stepDepth: optionsUsed.stepDepth,
+      easing: optionsUsed.easing,
     });
     gamutClampsApplied += neutralGen.gamutClampsApplied;
 
@@ -131,5 +143,15 @@ export function generatePalette(
 
 export * from "./types";
 export * from "./theme-mapper";
-export { STEPS } from "./ramp";
+export { STEPS, toRamp, generateRampFromAnchor, generateNeutralRamp } from "./ramp";
+export type { RampFromAnchorOpts, NeutralRampOpts } from "./ramp";
+export {
+  EASING_KEYWORDS,
+  cubicBezier,
+  cubicBezierYAtX,
+  evaluateEasingY,
+  easingWeightAtT,
+  resolveEasingControlPoints,
+} from "./easing";
+export type { EasingKeyword } from "./easing";
 export { assertBrandArray } from "./validate";

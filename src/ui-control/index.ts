@@ -13,6 +13,7 @@ export type {
 export {
   CVD_OPTIONS,
   DEFAULT_PALETTE_CONFIG_FORM_VALUES,
+  EASING_PRESET_OPTIONS,
   SCHEME_KINDS,
   mergePaletteConfigFormValues,
   parseHex,
@@ -21,6 +22,7 @@ export {
   valuesToPaletteOptions,
 } from "./paletteConfigFormModel";
 export type {
+  EasingKeyword,
   PaletteConfigFormInitialValues,
   PaletteConfigFormInputMode,
   PaletteConfigFormValues,

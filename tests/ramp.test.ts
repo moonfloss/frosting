@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { cubicBezier, evaluateEasingY } from "../src/color-utils/easing.js";
+import { hexToOklch } from "../src/color-utils/okcolor.js";
 import {
   STEPS,
   generateRampFromAnchor,
@@ -58,6 +60,77 @@ describe("generateRampFromAnchor", () => {
     });
     expect(typeof result.gamutClampsApplied).toBe("number");
     expect(result.gamutClampsApplied).toBeGreaterThanOrEqual(0);
+  });
+
+  // Must match L deltas in src/color-utils/ramp.ts (LIGHT_L / DARK_L vs 500).
+  const LIGHT_L_500 = 0.7;
+  const LIGHT = {
+    400: 0.83,
+    600: 0.6,
+  } as const;
+  const DARK_L_500 = 0.62;
+  const DARK = {
+    400: 0.7,
+    600: 0.54,
+  } as const;
+
+  it("centers L ladder on anchor so 400/600 are correct offsets from 500 (light)", () => {
+    const anchor = "#7C3AED" as const;
+    const { ramp } = generateRampFromAnchor(anchor, "light", {
+      neonChromaRolloff: true,
+    });
+    const l500 = hexToOklch(anchor).L;
+    const d400 = LIGHT[400] - LIGHT_L_500;
+    const d600 = LIGHT[600] - LIGHT_L_500;
+    // 8-bit #hex round-trip on generated steps can nudge L vs the anchor; keep tolerance loose.
+    expect(hexToOklch(ramp[400]).L - l500).toBeCloseTo(d400, 1);
+    expect(hexToOklch(ramp[600]).L - l500).toBeCloseTo(d600, 1);
+  });
+
+  it("centers L ladder on anchor so 400/600 are correct offsets from 500 (dark)", () => {
+    const anchor = "#7C3AED" as const;
+    const { ramp } = generateRampFromAnchor(anchor, "dark", {
+      neonChromaRolloff: true,
+    });
+    const l500 = hexToOklch(anchor).L;
+    const d400 = DARK[400] - DARK_L_500;
+    const d600 = DARK[600] - DARK_L_500;
+    expect(hexToOklch(ramp[400]).L - l500).toBeCloseTo(d400, 1);
+    expect(hexToOklch(ramp[600]).L - l500).toBeCloseTo(d600, 1);
+  });
+
+  it("stepDepth 0.5 compresses L spread vs 1.0 (linear)", () => {
+    const anchor = "#7C3AED" as const;
+    const a = generateRampFromAnchor(anchor, "light", {
+      neonChromaRolloff: true,
+      stepDepth: 0.5,
+      easing: "linear",
+    });
+    const b = generateRampFromAnchor(anchor, "light", {
+      neonChromaRolloff: true,
+      stepDepth: 1,
+      easing: "linear",
+    });
+    const l500 = hexToOklch(anchor).L;
+    const da = Math.abs(hexToOklch(a.ramp[200]).L - l500);
+    const db = Math.abs(hexToOklch(b.ramp[200]).L - l500);
+    expect(da).toBeLessThan(db);
+  });
+
+  it("nonlinear easing can change an intermediate step vs linear at same stepDepth", () => {
+    const anchor = "#7C3AED" as const;
+    const base = { neonChromaRolloff: true, stepDepth: 1, easing: "linear" as const };
+    const li = { ...base, easing: "ease-in-out" as const };
+    const a = generateRampFromAnchor(anchor, "light", base);
+    const b = generateRampFromAnchor(anchor, "light", li);
+    expect(a.ramp[200]).not.toBe(b.ramp[200]);
+  });
+
+  it("cubic-bezier object matches ease-in-out keyword at a sample t", () => {
+    const t = 0.4;
+    const a = evaluateEasingY(t, "ease-in-out");
+    const b = evaluateEasingY(t, cubicBezier(0.42, 0, 0.58, 1));
+    expect(a).toBeCloseTo(b, 5);
   });
 });
 

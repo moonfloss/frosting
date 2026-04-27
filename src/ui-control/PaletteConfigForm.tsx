@@ -46,6 +46,8 @@ export interface PaletteConfigFormFieldControllers {
   foregroundDark: PaletteConfigColorController;
   brandTint: FieldController<boolean>;
   neonChromaRolloff: FieldController<boolean>;
+  stepDepth: FieldController<number>;
+  easing: FieldController<PaletteConfigFormValues["easing"]>;
   cvdVariants: PaletteConfigCheckboxGroupController<CvdType>;
 }
 
@@ -242,6 +244,14 @@ export function PaletteConfigForm({
         value: values.neonChromaRolloff,
         onChange: (neonChromaRolloff) =>
           setValue("neonChromaRolloff", neonChromaRolloff),
+      },
+      stepDepth: {
+        value: values.stepDepth,
+        onChange: (stepDepth) => setValue("stepDepth", stepDepth),
+      },
+      easing: {
+        value: values.easing,
+        onChange: (easing) => setValue("easing", easing),
       },
       cvdVariants: {
         values: values.cvdVariants,

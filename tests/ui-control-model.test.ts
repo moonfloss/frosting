@@ -65,6 +65,8 @@ describe("paletteConfigForm model", () => {
     expect(valuesToPaletteOptions(values)).toEqual({
       brandTint: false,
       neonChromaRolloff: false,
+      stepDepth: 1,
+      easing: "linear",
       cvdVariants: ["deuteranopia"],
     });
   });

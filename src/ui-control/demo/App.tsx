@@ -1,4 +1,4 @@
-import { useEffect, useState, type SyntheticEvent } from "react";
+import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -20,15 +20,19 @@ import {
 
 import {
   CVD_OPTIONS,
+  EASING_PRESET_OPTIONS,
   PaletteConfigForm,
+  parseHex,
   RampPreview,
   SCHEME_KINDS,
   SemanticPreview,
+  type EasingKeyword,
   type PaletteConfigColorController,
   type PaletteConfigFormRenderProps,
   type PaletteConfigFormSubmit,
 } from "frosting/ui-control";
 import {
+  generateRampFromAnchor,
   mapPaletteToTheme,
   type CvdType,
   type SchemeKind,
@@ -180,6 +184,29 @@ function CustomPaletteFormContent({
   >(null);
   const [mapperError, setMapperError] = useState<string | null>(null);
 
+  const [oneOffHex, setOneOffHex] = useState("#6366f1");
+  const [oneOffStepDepth, setOneOffStepDepth] = useState(1);
+  const [oneOffEasing, setOneOffEasing] = useState<EasingKeyword>("linear");
+  const [oneOffNeon, setOneOffNeon] = useState(true);
+
+  const oneOffParsed = useMemo(() => parseHex(oneOffHex), [oneOffHex]);
+  const oneOffLight = useMemo(() => {
+    if (oneOffParsed == null) return null;
+    return generateRampFromAnchor(oneOffParsed, "light", {
+      neonChromaRolloff: oneOffNeon,
+      stepDepth: oneOffStepDepth,
+      easing: oneOffEasing,
+    });
+  }, [oneOffParsed, oneOffNeon, oneOffStepDepth, oneOffEasing]);
+  const oneOffDark = useMemo(() => {
+    if (oneOffParsed == null) return null;
+    return generateRampFromAnchor(oneOffParsed, "dark", {
+      neonChromaRolloff: oneOffNeon,
+      stepDepth: oneOffStepDepth,
+      easing: oneOffEasing,
+    });
+  }, [oneOffParsed, oneOffNeon, oneOffStepDepth, oneOffEasing]);
+
   useEffect(() => {
     if (
       previewVariant !== "default" &&
@@ -242,6 +269,78 @@ function CustomPaletteFormContent({
             custom Semantic UI controls, while submit output is handled
             separately from the live preview.
           </p>
+        </Segment>
+
+        <Segment>
+          <Header as="h3">One-off brand ramp</Header>
+          <p className="semantic-demo-muted" style={{ marginBottom: "1em" }}>
+            <code>generateRampFromAnchor</code> for a single anchor — independent
+            of the full palette form below.
+          </p>
+          <Form.Field>
+            <label>Anchor hex (500)</label>
+            <Input
+              value={oneOffHex}
+              onChange={(_event: SyntheticEvent, data: InputOnChangeData) =>
+                setOneOffHex(String(data.value ?? ""))
+              }
+              placeholder="#6366f1"
+            />
+          </Form.Field>
+          <Form.Field>
+            <label>Step depth</label>
+            <input
+              type="range"
+              className="semantic-demo-range"
+              min={0.25}
+              max={2.5}
+              step={0.05}
+              value={oneOffStepDepth}
+              onChange={(e) => setOneOffStepDepth(Number(e.target.value))}
+            />
+            <span style={{ marginLeft: "0.5rem" }}>{oneOffStepDepth.toFixed(2)}</span>
+          </Form.Field>
+          <Form.Field>
+            <label>Ramp easing</label>
+            <Dropdown
+              selection
+              options={EASING_PRESET_OPTIONS.map((e) => ({
+                key: e,
+                text: e,
+                value: e,
+              }))}
+              value={oneOffEasing}
+              onChange={(_event, data) =>
+                setOneOffEasing((data.value as EasingKeyword) ?? "linear")
+              }
+            />
+          </Form.Field>
+          <Form.Field>
+            <Checkbox
+              label="Neon chroma rolloff"
+              checked={oneOffNeon}
+              onChange={(_event, data: CheckboxProps) =>
+                setOneOffNeon(Boolean(data.checked))
+              }
+            />
+          </Form.Field>
+          {oneOffParsed == null && (
+            <Message warning content="Enter a valid 6-digit hex color to preview ramps." />
+          )}
+          {oneOffLight && oneOffDark && (
+            <div className="semantic-demo-oneoff-ramps">
+              <RampPreview
+                ramp={oneOffLight.ramp}
+                label="One-off · light"
+                className="semantic-demo-ramp-block"
+              />
+              <RampPreview
+                ramp={oneOffDark.ramp}
+                label="One-off · dark"
+                className="semantic-demo-ramp-block"
+              />
+            </div>
+          )}
         </Segment>
 
         <Segment>
@@ -401,6 +500,38 @@ function CustomPaletteFormContent({
                 checked={fields.neonChromaRolloff.value}
                 onChange={(_event: SyntheticEvent, data: CheckboxProps) =>
                   fields.neonChromaRolloff.onChange(Boolean(data.checked))
+                }
+              />
+            </Form.Field>
+            <Form.Field>
+              <label>Step depth: {fields.stepDepth.value.toFixed(2)}</label>
+              <input
+                type="range"
+                className="semantic-demo-range"
+                min={0.25}
+                max={2.5}
+                step={0.05}
+                value={fields.stepDepth.value}
+                onChange={(event) =>
+                  fields.stepDepth.onChange(Number(event.target.value))
+                }
+              />
+            </Form.Field>
+            <Form.Field>
+              <label>Ramp easing</label>
+              <Dropdown
+                fluid
+                selection
+                options={EASING_PRESET_OPTIONS.map((e) => ({
+                  key: e,
+                  text: e,
+                  value: e,
+                }))}
+                value={fields.easing.value}
+                onChange={(_event, data) =>
+                  fields.easing.onChange(
+                    (data.value as EasingKeyword) ?? "linear",
+                  )
                 }
               />
             </Form.Field>

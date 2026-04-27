@@ -11,7 +11,12 @@ import { deriveBrandFromScheme } from "./scheme";
 
 export function resolveInputs(
   input: PaletteInput,
-  _options: Required<Pick<PaletteOptions, "brandTint" | "neonChromaRolloff">>,
+  _options: Required<
+    Pick<
+      PaletteOptions,
+      "brandTint" | "neonChromaRolloff" | "stepDepth" | "easing"
+    >
+  >,
 ): {
   brand: { light: BrandArray; dark: BrandArray };
   background: { light?: HexColor; dark?: HexColor };

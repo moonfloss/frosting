@@ -22,7 +22,12 @@ import {
 } from "./PaletteConfigForm";
 import { RampPreview } from "./RampPreview";
 import { SemanticPreview } from "./SemanticPreview";
-import { CVD_OPTIONS, SCHEME_KINDS } from "./paletteConfigFormModel";
+import {
+  CVD_OPTIONS,
+  EASING_PRESET_OPTIONS,
+  SCHEME_KINDS,
+  type EasingKeyword,
+} from "./paletteConfigFormModel";
 
 function ConfigFormContent({
   form,
@@ -204,6 +209,29 @@ function ConfigFormContent({
               onChange={fields.neonChromaRolloff.onChange}
               label="Neon chroma rolloff"
               render={(props) => <HtmlCheckboxField {...props} />}
+            />
+            <SliderField
+              value={fields.stepDepth.value}
+              onChange={fields.stepDepth.onChange}
+              min={0.25}
+              max={2.5}
+              step={0.05}
+              id="frosting-step-depth"
+              label="Step depth"
+              description="Scales lightness spread from the 500 step (1 = default)."
+              render={(props) => <HtmlSliderField {...props} />}
+            />
+            <SelectField<EasingKeyword>
+              value={fields.easing.value}
+              onChange={fields.easing.onChange}
+              id="frosting-ramp-easing"
+              label="Ramp easing"
+              description="Timing-style curve on each ramp leg (50–500 and 500–950)."
+              options={EASING_PRESET_OPTIONS.map((e) => ({
+                value: e,
+                label: String(e),
+              }))}
+              render={(props) => <HtmlSelectField {...props} />}
             />
           </div>
         </div>

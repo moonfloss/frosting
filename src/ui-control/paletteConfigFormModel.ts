@@ -1,11 +1,16 @@
 import type {
   BrandArray,
   CvdType,
+  EasingKeyword,
+  EasingOption,
   HexColor,
   PaletteInput,
   PaletteOptions,
   SchemeKind,
 } from "../index";
+import { EASING_KEYWORDS } from "../index";
+
+export type { EasingKeyword };
 
 export type PaletteConfigFormInputMode = "brand" | "scheme";
 
@@ -23,6 +28,8 @@ export interface PaletteConfigFormValues {
   foregroundDark: string;
   brandTint: boolean;
   neonChromaRolloff: boolean;
+  stepDepth: number;
+  easing: EasingKeyword;
   cvdVariants: CvdType[];
 }
 
@@ -42,6 +49,9 @@ export const CVD_OPTIONS: CvdType[] = [
   "tritanopia",
 ];
 
+/** Easing keyword presets (for dropdowns). */
+export const EASING_PRESET_OPTIONS: readonly EasingKeyword[] = EASING_KEYWORDS;
+
 export const DEFAULT_PALETTE_CONFIG_FORM_VALUES: PaletteConfigFormValues = {
   inputMode: "brand",
   brandColors: ["#6366f1"],
@@ -56,6 +66,8 @@ export const DEFAULT_PALETTE_CONFIG_FORM_VALUES: PaletteConfigFormValues = {
   foregroundDark: "",
   brandTint: true,
   neonChromaRolloff: true,
+  stepDepth: 1,
+  easing: "linear",
   cvdVariants: [],
 };
 
@@ -92,15 +104,35 @@ function normalizeCvdVariants(values?: CvdType[]): CvdType[] {
   );
 }
 
+const EASING_KEYWORD_SET = new Set<string>(EASING_KEYWORDS);
+
+function isEasingKeyword(value: unknown): value is EasingKeyword {
+  return typeof value === "string" && EASING_KEYWORD_SET.has(value);
+}
+
 export function mergePaletteConfigFormValues(
   initialValues?: PaletteConfigFormInitialValues,
 ): PaletteConfigFormValues {
-  return {
+  const merged: PaletteConfigFormValues = {
     ...DEFAULT_PALETTE_CONFIG_FORM_VALUES,
     ...initialValues,
     brandColors: normalizeBrandColors(initialValues?.brandColors),
     cvdVariants: normalizeCvdVariants(initialValues?.cvdVariants),
   };
+  if (initialValues?.easing != null && isEasingKeyword(initialValues.easing)) {
+    merged.easing = initialValues.easing;
+  } else if (
+    initialValues &&
+    "easing" in initialValues &&
+    initialValues.easing != null &&
+    !isEasingKeyword(initialValues.easing)
+  ) {
+    merged.easing = DEFAULT_PALETTE_CONFIG_FORM_VALUES.easing;
+  }
+  if (typeof initialValues?.stepDepth === "number" && initialValues.stepDepth > 0) {
+    merged.stepDepth = initialValues.stepDepth;
+  }
+  return merged;
 }
 
 function normalizePerMode(lightRaw: string, darkRaw: string) {
@@ -161,6 +193,8 @@ export function valuesToPaletteOptions(
   return {
     brandTint: values.brandTint,
     neonChromaRolloff: values.neonChromaRolloff,
+    stepDepth: values.stepDepth,
+    easing: values.easing as EasingOption,
     cvdVariants: values.cvdVariants.length > 0 ? values.cvdVariants : undefined,
   };
 }

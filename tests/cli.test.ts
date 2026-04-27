@@ -87,6 +87,8 @@ describe("CLI", () => {
       const palette = JSON.parse(stdout);
       expect(palette.inputs.optionsUsed.brandTint).toBe(true);
       expect(palette.inputs.optionsUsed.neonChromaRolloff).toBe(true);
+      expect(palette.inputs.optionsUsed.stepDepth).toBe(1);
+      expect(palette.inputs.optionsUsed.easing).toBe("linear");
     });
 
     it("no-tint disables brandTint", async () => {
